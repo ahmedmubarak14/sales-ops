@@ -70,7 +70,7 @@
         '<div class="login-tools"><button class="icon-btn lang-btn" id="login-lang" aria-label="' + L('Language', 'اللغة') + '">' + (isAr() ? 'EN' : 'ع') + '</button></div></div>' +
         '<div class="login-hero">' + heroRings() +
           '<h2>' + L('Every deal, every invoice, one number to trust.', 'كل صفقة وكل فاتورة، ورقم واحد تثق به.') + '</h2>' +
-          '<p>' + L('Sales Ops lines HubSpot up with Metabase, so reps see exactly what counts, managers see the team, and finance pays on the invoice.', 'تطابق عمليات المبيعات بين HubSpot وMetabase، ليرى المندوب ما يُحتسب، والمدير فريقه، وتصرف المالية على الفاتورة.') + '</p>' +
+          '<p>' + L('Sales Ops lines HubSpot up with Metabase, so employees see exactly what counts, managers see the team, and finance pays on the invoice.', 'تطابق عمليات المبيعات بين HubSpot وMetabase، ليرى الموظف ما يُحتسب، والمدير فريقه، وتصرف المالية على الفاتورة.') + '</p>' +
           '<div class="hero-zid">' + L('by', 'من') + ' ' + ZID_LOGO + '</div>' +
         '</div>' +
       '</div>';
@@ -143,7 +143,7 @@
     var ctrl = '';
     if (c.reps && !isRep()) {
       var sel = ST.repSel && ST.repSel.length ? ST.repSel : null;
-      ctrl += '<div class="so-ms"><button class="drp-trigger" id="ms-btn" aria-expanded="false">' + ICON.team + '<span>' + (sel ? (sel.length === 1 ? esc(nameOf(sel[0])) : sel.length + L(' reps', ' مندوبين')) : L('All reps', 'كل المندوبين')) + '</span></button></div>';
+      ctrl += '<div class="so-ms"><button class="drp-trigger" id="ms-btn" aria-expanded="false">' + ICON.team + '<span>' + (sel ? (sel.length === 1 ? esc(nameOf(sel[0])) : sel.length + L(' employees', ' موظفين')) : L('All employees', 'كل الموظفين')) + '</span></button></div>';
     }
     if (c.month) ctrl += '<select class="so-month" id="month-sel" aria-label="' + L('Month', 'الشهر') + '">' + months.map(function (m) { return '<option value="' + m + '"' + (m === ST.month ? ' selected' : '') + '>' + esc(monthName(m)) + '</option>'; }).join('') + '</select>';
 
@@ -194,8 +194,8 @@
   function openRepPicker() {
     var picked = {}; (ST.repSel || []).forEach(function (e) { picked[e] = true; });
     var reps = activeReps();
-    dialog({ title: L('Reps', 'المندوبون'), sub: L('Pick one or more. None picked means the whole team.', 'اختر واحدًا أو أكثر. بدون اختيار يعني الفريق كله.'),
-      body: '<input type="search" id="ms-q" placeholder="' + L('Search reps', 'ابحث عن مندوب') + '" style="width:100%;margin-bottom:8px"><div class="so-msl">' + reps.map(function (u) {
+    dialog({ title: L('Employees', 'الموظفون'), sub: L('Pick one or more. None picked means the whole team.', 'اختر واحدًا أو أكثر. بدون اختيار يعني الفريق كله.'),
+      body: '<input type="search" id="ms-q" placeholder="' + L('Search employees', 'ابحث عن موظف') + '" style="width:100%;margin-bottom:8px"><div class="so-msl">' + reps.map(function (u) {
         var e = lcEmail(u.email);
         return '<label class="so-msi" data-name="' + esc(u.name.toLowerCase()) + '"><input type="checkbox" value="' + esc(e) + '"' + (picked[e] ? ' checked' : '') + '><span><b>' + esc(u.name) + '</b><span class="cell-sub">' + esc(SO.planOf(ST.model.rules, u.plan).name) + '</span></span></label>';
       }).join('') + '</div><div class="so-row" style="margin-top:8px"><button class="ghost-btn" id="ms-none">' + L('Reset', 'إعادة') + '</button></div>',

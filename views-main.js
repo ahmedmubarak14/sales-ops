@@ -63,7 +63,7 @@ VIEWS.overview = {
     } else {
       html += kpis([
         tile(L('Team counted', 'محسوب الفريق'), moneyC(tm.closed), pct(tm.target ? tm.closed / tm.target : 0) + ' ' + L('of target', 'من الهدف')),
-        tile(L('Stores closed', 'المتاجر المغلقة'), fmtNum(tm.stores), tm.reps.length + ' ' + L('reps', 'مندوب') + ' · ' + L('target ', 'الهدف ') + moneyC(tm.target)),
+        tile(L('Stores closed', 'المتاجر المغلقة'), fmtNum(tm.stores), tm.reps.length + ' ' + L('employees', 'موظف') + ' · ' + L('target ', 'الهدف ') + moneyC(tm.target)),
         tile(L('Commission due', 'العمولة المستحقة'), moneyC(tm.comm), L('Held: ', 'محجوز: ') + moneyC(tm.held)),
         tile(L('At stake', 'معرّض للخسارة'), moneyC(tm.atStake), L('Open issues, not counted', 'مشكلات مفتوحة غير محسوبة'))
       ]);
@@ -132,7 +132,7 @@ function ranksRow(tm, m) {
   var bySec = Object.keys(cat).map(function (k) { return { label: trCat(k), v: cat[k], fmt: moneyC(cat[k]) }; }).sort(function (a, b) { return b.v - a.v; }).slice(0, 5);
   var stake = tm.reps.filter(function (r) { return r.atStake > 0; }).sort(function (a, b) { return b.atStake - a.atStake; }).slice(0, 5)
     .map(function (rm) { return { label: nameOf(rm.email), sub: rm.issues.length + ' ' + L('issues', 'مشكلة'), v: rm.atStake, fmt: moneyC(rm.atStake) }; });
-  return '<div class="so-grid-3">' + list(L('Top reps', 'أفضل المندوبين'), L('Counted this month', 'المحسوب هذا الشهر'), byRep) +
+  return '<div class="so-grid-3">' + list(L('Top employees', 'أفضل الموظفين'), L('Counted this month', 'المحسوب هذا الشهر'), byRep) +
     list(L('Top sectors', 'أعلى القطاعات'), L('Counted SAR by store sector', 'المحسوب حسب قطاع المتجر'), bySec) +
     list(L('Most at stake', 'الأكثر عرضة'), L('Not counted until fixed', 'غير محسوب حتى الإصلاح'), stake) + '</div>';
 }
@@ -255,7 +255,7 @@ VIEWS.issues = {
 /* ---------------- Exception queue (management) ---------------- */
 VIEWS.queue = {
   title: function () { return L('Exception queue', 'قائمة الاستثناءات'); },
-  sub: function () { return L('Cases a rep cannot fix alone: duplicates, ownership, and anything assigned to management.', 'حالات لا يحلها المندوب وحده: التكرار والملكية وما أُسند للإدارة.'); },
+  sub: function () { return L('Cases an employee cannot fix alone: duplicates, ownership, and anything assigned to management.', 'حالات لا يحلها الموظف وحده: التكرار والملكية وما أُسند للإدارة.'); },
   controls: { month: true, reps: true },
   render: function (el) {
     var s = ST.v.queue = ST.v.queue || { rule: '', rep: '' };
@@ -273,9 +273,9 @@ VIEWS.queue = {
     });
     el.innerHTML =
       '<div class="filter-row"><select id="q-rule"><option value="">' + L('All rules', 'كل القواعد') + '</option>' + Object.keys(ISSUE).map(function (k) { return '<option value="' + k + '"' + (s.rule === k ? ' selected' : '') + '>' + esc(issueTitle(k)) + '</option>'; }).join('') + '</select>' +
-        '<select id="q-rep"><option value="">' + L('All reps', 'كل المندوبين') + '</option>' + activeReps().map(function (u) { return '<option value="' + esc(lcEmail(u.email)) + '"' + (s.rep === lcEmail(u.email) ? ' selected' : '') + '>' + esc(u.name) + '</option>'; }).join('') + '</select>' +
+        '<select id="q-rep"><option value="">' + L('All employees', 'كل الموظفين') + '</option>' + activeReps().map(function (u) { return '<option value="' + esc(lcEmail(u.email)) + '"' + (s.rep === lcEmail(u.email) ? ' selected' : '') + '>' + esc(u.name) + '</option>'; }).join('') + '</select>' +
         '<span class="spacer"></span><span class="sub">' + rows.length + ' ' + L('cases', 'حالة') + '</span></div>' +
-      '<div class="so-split"><section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th>' + L('Age', 'العمر') + '</th><th>' + L('Rule', 'القاعدة') + '</th><th>' + L('Rep', 'المندوب') + '</th><th>' + L('Merchant', 'التاجر') + '</th><th class="num">' + L('Amount', 'المبلغ') + '</th><th>' + L('Assigned', 'المسؤول') + '</th><th>' + L('Actions', 'الإجراءات') + '</th></tr></thead><tbody>' +
+      '<div class="so-split"><section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th>' + L('Age', 'العمر') + '</th><th>' + L('Rule', 'القاعدة') + '</th><th>' + L('Employee', 'الموظف') + '</th><th>' + L('Merchant', 'التاجر') + '</th><th class="num">' + L('Amount', 'المبلغ') + '</th><th>' + L('Assigned', 'المسؤول') + '</th><th>' + L('Actions', 'الإجراءات') + '</th></tr></thead><tbody>' +
         (rows.length ? rows.map(function (x) {
           var r = x.r, i = x.i, key = r.id + '|' + i.kind;
           var n = comments.filter(function (c) { return c.hubspot_deal_id === r.id && c.kind === i.kind; }).length;
@@ -361,7 +361,7 @@ VIEWS.calc = {
     var s = ST.v.calc = ST.v.calc || { extra: 0, stores: 0, rep: null };
     var email = isRep() ? lcEmail(me().email) : s.rep;
     if (!email) {
-      el.innerHTML = card(L('Pick a rep', 'اختر مندوبًا'), L('The calculator works on one rep\'s month.', 'تعمل الحاسبة على شهر مندوب واحد.'),
+      el.innerHTML = card(L('Pick an employee', 'اختر موظفًا'), L('The calculator works on one employee\'s month.', 'تعمل الحاسبة على شهر موظف واحد.'),
         '<div class="so-row so-wrap">' + activeReps().map(function (u) { return '<button class="btn secondary" data-rep="' + esc(lcEmail(u.email)) + '">' + esc(u.name) + '</button>'; }).join('') + '</div>');
       on(el, '[data-rep]', 'click', function (b) { s.rep = b.getAttribute('data-rep'); VIEWS.calc.render(el); });
       return;
@@ -374,7 +374,7 @@ VIEWS.calc = {
     lad.forEach(function (l, i) { if (curClosed >= l.closed) here = i; });
     el.innerHTML = '<section class="so-calc">' +
       '<div class="card">' +
-        (isRep() ? '' : '<div class="filter-row" style="margin-bottom:10px"><button class="ghost-btn" id="cc-back">← ' + L('All reps', 'كل المندوبين') + '</button><b>' + esc(nameOf(email)) + '</b></div>') +
+        (isRep() ? '' : '<div class="filter-row" style="margin-bottom:10px"><button class="ghost-btn" id="cc-back">← ' + L('All employees', 'كل الموظفين') + '</button><b>' + esc(nameOf(email)) + '</b></div>') +
         '<h2>' + L('If you close more', 'إن أغلقت المزيد') + '</h2>' +
         '<p class="sub">' + esc(rm.plan.name) + ' · ' + L('counted so far', 'المحسوب حتى الآن') + ' ' + money(rm.closed) + ' · ' + rm.stores + ' ' + L('stores', 'متجر') + ' · ' + L('target', 'الهدف') + ' ' + money(rm.target) + '</p>' +
         '<label class="so-slider"><span>' + L('Extra closed', 'إغلاق إضافي') + ' · <b>' + money(s.extra) + '</b></span><input type="range" id="cc-extra" min="0" max="' + Math.max(80000, Math.round(rm.target)) + '" step="1000" value="' + s.extra + '"></label>' +

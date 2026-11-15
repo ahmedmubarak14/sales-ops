@@ -23,7 +23,7 @@ function boardRows(month) {
 /* ---------------- Team ---------------- */
 VIEWS.team = {
   title: function () { return L('Team', 'الفريق'); },
-  sub: function () { return L('Every rep\'s month: target, what counts, stores, commission and open issues.', 'شهر كل مندوب: الهدف والمحسوب والمتاجر والعمولة والمشكلات.'); },
+  sub: function () { return L('Every employee\'s month: target, what counts, stores, commission and open issues.', 'شهر كل موظف: الهدف والمحسوب والمتاجر والعمولة والمشكلات.'); },
   controls: { month: true, reps: true },
   render: function (el) {
     var rows = scopeEmails().map(function (e) { return SO.repMonth(ST.model, e, ST.month); });
@@ -32,7 +32,7 @@ VIEWS.team = {
       comm: function (r) { return r.calc.amount; }, issues: function (r) { return r.issues.length; }, gap: function (r) { return r.hsClosed - r.closed; }
     }, 'closed');
     el.innerHTML = '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr>' +
-      sortHead('team', 'name', L('Rep', 'المندوب')) + '<th>' + L('Plan', 'الخطة') + '</th><th class="num">' + L('Target', 'الهدف') + '</th>' +
+      sortHead('team', 'name', L('Employee', 'الموظف')) + '<th>' + L('Plan', 'الخطة') + '</th><th class="num">' + L('Target', 'الهدف') + '</th>' +
       sortHead('team', 'closed', L('Counted', 'المحسوب')) + sortHead('team', 'stores', L('Stores', 'المتاجر'), 'num') + '<th class="num">' + L('To target', 'للهدف') + '</th>' +
       sortHead('team', 'comm', L('Commission', 'العمولة'), 'num') + sortHead('team', 'issues', L('Issues', 'المشكلات'), 'num') + sortHead('team', 'gap', L('HubSpot gap', 'فرق HubSpot'), 'num') +
       '</tr></thead><tbody>' + rows.map(function (r) {
@@ -59,7 +59,7 @@ VIEWS.leaderboard = {
   render: function (el) {
     var rows = boardRows(ST.month), mine = lcEmail(me().email);
     var full = rows.length && rows[0].ach !== null;
-    el.innerHTML = '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th>#</th><th>' + L('Rep', 'المندوب') + '</th><th class="num">' + L('Counted', 'المحسوب') + '</th><th class="num">' + L('Stores', 'المتاجر') + '</th>' +
+    el.innerHTML = '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th>#</th><th>' + L('Employee', 'الموظف') + '</th><th class="num">' + L('Counted', 'المحسوب') + '</th><th class="num">' + L('Stores', 'المتاجر') + '</th>' +
       (full ? '<th class="num">' + L('Of target', 'من الهدف') + '</th><th class="num" title="' + L('Months in a row at target', 'أشهر متتالية بلغت الهدف') + '">🔥</th><th class="num">' + L('Best month', 'أفضل شهر') + '</th><th>' + L('Tier', 'الشريحة') + '</th>' : '') +
       '</tr></thead><tbody>' + rows.map(function (r, i) {
         return '<tr class="' + (r.email === mine ? 'so-here' : '') + '"><td><span class="rank-badge ' + (i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '') + '">' + (i + 1) + '</span></td>' +
@@ -128,7 +128,7 @@ VIEWS.analytics = {
         return [nameOf(e), tot2, tg];
       }).sort(function (a, b) { return b[1] - a[1]; });
       exportRows = reps.map(function (r) { return [r[0], Math.round(r[1]), Math.round(r[2]), r[2] ? Math.round(r[1] / r[2] * 100) + '%' : '']; });
-      html += card(L('By rep, 12 months', 'حسب المندوب، 12 شهرًا'), '', '<div class="tbl-wrap"><table><thead><tr><th>' + L('Rep', 'المندوب') + '</th><th class="num">' + L('Counted', 'المحسوب') + '</th><th class="num">' + L('Target', 'الهدف') + '</th><th class="num">' + L('Of target', 'من الهدف') + '</th></tr></thead><tbody>' +
+      html += card(L('By employee, 12 months', 'حسب الموظف، 12 شهرًا'), '', '<div class="tbl-wrap"><table><thead><tr><th>' + L('Employee', 'الموظف') + '</th><th class="num">' + L('Counted', 'المحسوب') + '</th><th class="num">' + L('Target', 'الهدف') + '</th><th class="num">' + L('Of target', 'من الهدف') + '</th></tr></thead><tbody>' +
         reps.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td class="num">' + money(r[1]) + '</td><td class="num">' + money(r[2]) + '</td><td class="num">' + pct(r[2] ? r[1] / r[2] : 0) + '</td></tr>'; }).join('') + '</tbody></table></div>');
     } else if (s.tab === 'win') {
       var dec = rowsAll.filter(function (r) { return r.closed; });
@@ -142,7 +142,7 @@ VIEWS.analytics = {
         return [nameOf(e), d.length, ww, d.length ? ww / d.length : 0];
       }).sort(function (a, b) { return b[3] - a[3]; });
       exportRows = byRep.map(function (r) { return [r[0], r[1], r[2], Math.round(r[3] * 100) + '%']; });
-      html += card(L('Win rate by rep', 'نسبة الفوز لكل مندوب'), '', '<div class="tbl-wrap"><table><thead><tr><th>' + L('Rep', 'المندوب') + '</th><th class="num">' + L('Decided', 'محسومة') + '</th><th class="num">' + L('Won', 'فائزة') + '</th><th>' + L('Win rate', 'نسبة الفوز') + '</th></tr></thead><tbody>' +
+      html += card(L('Win rate by employee', 'نسبة الفوز لكل موظف'), '', '<div class="tbl-wrap"><table><thead><tr><th>' + L('Employee', 'الموظف') + '</th><th class="num">' + L('Decided', 'محسومة') + '</th><th class="num">' + L('Won', 'فائزة') + '</th><th>' + L('Win rate', 'نسبة الفوز') + '</th></tr></thead><tbody>' +
         byRep.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td class="num">' + r[1] + '</td><td class="num">' + r[2] + '</td><td><div class="so-cellbar">' + bar(r[3]) + '<span>' + pct(r[3]) + '</span></div></td></tr>'; }).join('') + '</tbody></table></div>');
     } else {
       var byType = {}, byPlan = {};
@@ -210,14 +210,14 @@ VIEWS.sectors = {
         '<div class="so-monthbars">' + byMonth.map(function (b) { return '<div title="' + esc(monthName(b.mk) + ' · ' + trCat(b.cat || '—') + ' · ' + moneyC(b.sar) + ' · ' + pct(b.share)) + '"><span style="height:' + Math.max(4, b.share * 100) + '%;background:' + (color[b.cat] || 'var(--mark-muted)') + '"></span><em>' + esc(monthName(b.mk, true)) + '</em></div>'; }).join('') + '</div>' +
         '<div class="legend">' + top.map(function (c) { return '<span class="lg"><i class="sw" style="background:' + color[c] + '"></i>' + esc(trCat(c)) + '</span>'; }).join('') + '</div>') +
       '</div>' +
-      card(L('Rep × sector', 'المندوب × القطاع'), L('Counted SAR, top sectors', 'المحسوب لأعلى القطاعات'),
-        '<div class="tbl-wrap"><table class="so-grid-t"><thead><tr><th>' + L('Rep', 'المندوب') + '</th>' + top.map(function (c) { return '<th class="num">' + esc(trCat(c)) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      card(L('Employee × sector', 'الموظف × القطاع'), L('Counted SAR, top sectors', 'المحسوب لأعلى القطاعات'),
+        '<div class="tbl-wrap"><table class="so-grid-t"><thead><tr><th>' + L('Employee', 'الموظف') + '</th>' + top.map(function (c) { return '<th class="num">' + esc(trCat(c)) + '</th>'; }).join('') + '</tr></thead><tbody>' +
         grid.map(function (g) {
           var mx = Math.max.apply(null, top.map(function (c) { return g.m[c] || 0; }).concat([1]));
           return '<tr><td><b>' + esc(nameOf(g.e)) + '</b></td>' + top.map(function (c) { var v = g.m[c] || 0; return '<td class="num so-heat" style="--a:' + (v / mx * 0.5).toFixed(2) + '">' + (v ? moneyC(v) : '—') + '</td>'; }).join('') + '</tr>';
         }).join('') + '</tbody></table></div>') +
-      card(L('Each rep\'s strongest sector', 'أقوى قطاع لكل مندوب'), '',
-        '<div class="tbl-wrap"><table><thead><tr><th>' + L('Rep', 'المندوب') + '</th><th>' + L('Top sector', 'القطاع الأول') + '</th><th class="num">' + L('Counted there', 'المحسوب فيه') + '</th><th>' + L('Share of rep', 'حصته من المندوب') + '</th></tr></thead><tbody>' +
+      card(L('Each employee\'s strongest sector', 'أقوى قطاع لكل موظف'), '',
+        '<div class="tbl-wrap"><table><thead><tr><th>' + L('Employee', 'الموظف') + '</th><th>' + L('Top sector', 'القطاع الأول') + '</th><th class="num">' + L('Counted there', 'المحسوب فيه') + '</th><th>' + L('Share of employee', 'حصته من الموظف') + '</th></tr></thead><tbody>' +
         grid.filter(function (g) { return g.best; }).map(function (g) { var v = g.m[g.best]; return '<tr><td><b>' + esc(nameOf(g.e)) + '</b></td><td><span class="so-sw" style="background:' + (color[g.best] || '#999') + '"></span> ' + esc(trCat(g.best)) + '</td><td class="num">' + moneyC(v) + '</td><td><div class="so-cellbar">' + bar(v / g.all) + '<span>' + pct(v / g.all) + '</span></div></td></tr>'; }).join('') +
         '</tbody></table></div>');
   }

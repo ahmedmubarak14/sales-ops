@@ -46,8 +46,8 @@ VIEWS.recon = {
       return { e: e, hs: r.hs, mb: r.mb, gap: r.gap, big: big && Math.abs(big.amount) > 0 ? big : null };
     }).sort(function (a, b) { return Math.abs(b.gap) - Math.abs(a.gap); });
     var notCounted = rc.hsRows.filter(function (r) { return !r.counted; }).concat(rc.mbRows.filter(function (r) { return !r.won; }));
-    html += '<div class="grid-2">' + card(L('By rep', 'حسب المندوب'), L('Largest gaps first', 'الأكبر فرقًا أولًا'),
-      '<div class="tbl-wrap"><table><thead><tr><th>' + L('Rep', 'المندوب') + '</th><th class="num">HubSpot</th><th class="num">Metabase</th><th class="num">' + L('Gap', 'الفرق') + '</th><th>' + L('Biggest reason', 'السبب الأكبر') + '</th></tr></thead><tbody>' +
+    html += '<div class="grid-2">' + card(L('By employee', 'حسب الموظف'), L('Largest gaps first', 'الأكبر فرقًا أولًا'),
+      '<div class="tbl-wrap"><table><thead><tr><th>' + L('Employee', 'الموظف') + '</th><th class="num">HubSpot</th><th class="num">Metabase</th><th class="num">' + L('Gap', 'الفرق') + '</th><th>' + L('Biggest reason', 'السبب الأكبر') + '</th></tr></thead><tbody>' +
       reps.map(function (r) { return '<tr><td>' + esc(nameOf(r.e)) + '</td><td class="num">' + moneyC(r.hs) + '</td><td class="num">' + moneyC(r.mb) + '</td><td class="num">' + signed(r.gap) + '</td><td>' + (r.big ? esc(L(RECON_STEP[r.big.key][0], RECON_STEP[r.big.key][1])) : '—') + '</td></tr>'; }).join('') + '</tbody></table></div>') +
       card(L('Deals that do not count', 'صفقات غير محسوبة'), L('In one system but not the other', 'في نظام دون الآخر'),
         notCounted.length ? '<div class="tbl-wrap"><table><thead><tr><th>' + L('Merchant', 'التاجر') + '</th><th>' + L('Reason', 'السبب') + '</th><th class="num">SAR</th></tr></thead><tbody>' +
@@ -70,7 +70,7 @@ function paidFor(email, month) {
 }
 VIEWS.payouts = {
   title: function () { return L('Payouts', 'الصرف'); },
-  sub: function () { return L('Commission due per rep for the month. Finance marks it paid once it is in the payroll run.', 'العمولة المستحقة لكل مندوب. تسجلها المالية مصروفة بعد إدراجها في الرواتب.'); },
+  sub: function () { return L('Commission due per employee for the month. Finance marks it paid once it is in the payroll run.', 'العمولة المستحقة لكل موظف. تسجلها المالية مصروفة بعد إدراجها في الرواتب.'); },
   controls: { month: true },
   render: function (el) {
     var s = ST.v.payouts = ST.v.payouts || { picked: {}, date: new Date().toISOString().slice(0, 10), ref: '' };
@@ -88,13 +88,13 @@ VIEWS.payouts = {
     var sum = function (l) { return l.reduce(function (a, r) { return a + (r.paid && Number(r.paid.amount) ? Number(r.paid.amount) : r.rm.calc.amount); }, 0); };
     var picked = due.filter(function (r) { return s.picked[r.e]; });
     var html = '<section class="so-recon3">' +
-      '<div class="card"><p class="t-label">' + L('Total due', 'إجمالي المستحق') + '</p><p class="so-big">' + money(sum(due)) + '</p><p class="sub">' + due.length + ' ' + L('reps', 'مندوب') + '</p></div>' +
+      '<div class="card"><p class="t-label">' + L('Total due', 'إجمالي المستحق') + '</p><p class="so-big">' + money(sum(due)) + '</p><p class="sub">' + due.length + ' ' + L('employees', 'موظف') + '</p></div>' +
       '<div class="card"><p class="t-label">' + L('Paid', 'مصروف') + '</p><p class="so-big money-pos">' + money(sum(rows.filter(function (r) { return r.paid; }))) + '</p></div>' +
       '<div class="card"><p class="t-label">' + L('On hold', 'محجوز') + '</p><p class="so-big">' + money(sum(rows.filter(function (r) { return r.status === 'held'; }))) + '</p><p class="sub">' + L('Below the store minimum', 'أقل من الحد الأدنى للمتاجر') + '</p></div></section>';
     html += '<div class="filter-row">' + (grant ? pill('good', L('Access to ', 'صلاحية ') + monthName(ST.month) + L(' until ', ' حتى ') + dateShort(grant.ends_on)) : isMgr() && !isAdmin() ? pill('muted', L('Read only: finance records payments', 'للعرض فقط: المالية تسجل الصرف')) : '') +
       '<span class="spacer"></span>' + (canPay && due.length ? '<button class="ghost-btn" id="po-all">' + L('Select all due', 'تحديد كل المستحق') + '</button>' : '') +
       '<button class="btn secondary so-ib" id="po-csv">' + ICON.download + L('Export CSV', 'تصدير CSV') + '</button></div>';
-    html += '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th></th><th>' + L('Rep', 'المندوب') + '</th><th>' + L('Plan', 'الخطة') + '</th><th class="num">' + L('Counted', 'المحسوب') + '</th><th class="num">' + L('Stores', 'المتاجر') + '</th><th class="num">' + L('Commission', 'العمولة') + '</th><th>' + L('Status', 'الحالة') + '</th><th></th></tr></thead><tbody>' +
+    html += '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th></th><th>' + L('Employee', 'الموظف') + '</th><th>' + L('Plan', 'الخطة') + '</th><th class="num">' + L('Counted', 'المحسوب') + '</th><th class="num">' + L('Stores', 'المتاجر') + '</th><th class="num">' + L('Commission', 'العمولة') + '</th><th>' + L('Status', 'الحالة') + '</th><th></th></tr></thead><tbody>' +
       rows.map(function (r) {
         var st = { paid: pill('good', L('Paid', 'مصروف')), held: pill('warn', L('Held', 'محجوز')), due: pill('muted', L('Due', 'مستحق')), none: '<span class="sub">—</span>' }[r.status];
         return '<tr><td>' + (canPay && r.status === 'due' ? '<input type="checkbox" data-pick="' + esc(r.e) + '"' + (s.picked[r.e] ? ' checked' : '') + ' aria-label="' + esc(r.u.name) + '">' : '') + '</td>' +
@@ -178,7 +178,7 @@ VIEWS.grants = {
 /* ---------------- Targets & plans ---------------- */
 VIEWS.targets = {
   title: function () { return L('Targets & plans', 'الأهداف والخطط'); },
-  sub: function () { return L('Each rep\'s plan and monthly target. Changes apply to the month you pick and carry forward.', 'خطة وهدف كل مندوب شهريًا. تسري على الشهر المختار وما بعده.'); },
+  sub: function () { return L('Each employee\'s plan and monthly target. Changes apply to the month you pick and carry forward.', 'خطة وهدف كل موظف شهريًا. تسري على الشهر المختار وما بعده.'); },
   controls: { month: true },
   render: function (el) {
     var s = ST.v.targets = ST.v.targets || { dirty: {} };
@@ -189,7 +189,7 @@ VIEWS.targets = {
         exc: d.exc != null ? d.exc : tg.exception, sector: d.sector != null ? d.sector : tg.sectorMet, inherited: !tg.explicit };
     });
     var n = Object.keys(s.dirty).length;
-    el.innerHTML = '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th>' + L('Rep', 'المندوب') + '</th><th>' + L('Plan', 'الخطة') + '</th><th>' + L('Monthly target (SAR)', 'الهدف الشهري (ريال)') + '</th><th>' + L('Applies from', 'يسري من') + '</th><th title="' + L('Pays commission below the store minimum', 'صرف العمولة دون الحد الأدنى للمتاجر') + '">' + L('Store exception', 'استثناء المتاجر') + '</th><th>' + L('Sector target met', 'تحقق هدف القطاع') + '</th></tr></thead><tbody>' +
+    el.innerHTML = '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th>' + L('Employee', 'الموظف') + '</th><th>' + L('Plan', 'الخطة') + '</th><th>' + L('Monthly target (SAR)', 'الهدف الشهري (ريال)') + '</th><th>' + L('Applies from', 'يسري من') + '</th><th title="' + L('Pays commission below the store minimum', 'صرف العمولة دون الحد الأدنى للمتاجر') + '">' + L('Store exception', 'استثناء المتاجر') + '</th><th>' + L('Sector target met', 'تحقق هدف القطاع') + '</th></tr></thead><tbody>' +
       rows.map(function (r) {
         var p = SO.planOf(ST.model.rules, r.plan);
         return '<tr' + (s.dirty[r.e] ? ' class="so-here"' : '') + '><td><b>' + esc(r.u.name) + '</b>' + (r.inherited && !s.dirty[r.e] ? '<span class="cell-sub">' + L('Carried from an earlier month', 'منقول من شهر سابق') + '</span>' : '') + '</td>' +
@@ -242,7 +242,7 @@ VIEWS.rules = {
         '<h3 class="so-sec">' + L('Invoice actions that do not count', 'أنواع فواتير لا تُحتسب') + '</h3><div class="so-row so-wrap">' +
           SO.ALL_EXCLUSIONS.map(function (x) { var onx = d.exclusions.indexOf(x) >= 0; return '<button class="ghost-btn' + (onx ? ' so-on' : '') + '" data-excl="' + esc(x) + '">' + (onx ? '✓ ' : '') + esc(x) + '</button>'; }).join('') + '</div>' +
         '<div style="margin-top:14px"><button class="btn" id="rl-save">' + L('Save as version ', 'حفظ كإصدار ') + ((ST.snap.ruleVersion || 1) + 1) + '</button></div>') +
-      card(L('Rules as reps read them', 'القواعد كما يقرؤها المندوب'), L('Shown on the calculator. Keep each one short.', 'تظهر في الحاسبة. اجعل كلًا منها قصيرًا.'),
+      card(L('Rules as employees read them', 'القواعد كما يقرؤها الموظف'), L('Shown on the calculator. Keep each one short.', 'تظهر في الحاسبة. اجعل كلًا منها قصيرًا.'),
         d.rule_text.map(function (r, i) { return '<label class="f-label">' + (i + 1) + '<input data-rule="' + i + '" value="' + esc(r) + '"></label>'; }).join('')) + '</div>';
     on(el, '[data-path]', 'change', function (inp) {
       var p = inp.getAttribute('data-path').split('.'), o = d;
@@ -275,17 +275,29 @@ VIEWS.integrations = {
       { name: 'hubspot', title: 'HubSpot', logo: 'hs', fields: [['pipelines', L('Pipeline IDs (comma separated)', 'معرفات خطوط البيع (بفواصل)'), 'list'], ['amount_prop', L('Amount property', 'خاصية المبلغ')], ['category_prop', L('Sector property', 'خاصية القطاع')], ['deal_type_prop', L('Deal type property', 'خاصية نوع الصفقة')], ['store_id_prop', L('Store ID property', 'خاصية رقم المتجر')]],
         keyLabel: L('Private app token', 'رمز التطبيق الخاص') },
       { name: 'metabase', title: 'Metabase', logo: 'mb', fields: [['base_url', L('Metabase address', 'عنوان Metabase')], ['card_invoices', L('Invoices question ID', 'رقم سؤال الفواتير')]],
-        keyLabel: L('API key', 'مفتاح API') }
+        keyLabel: L('API key', 'مفتاح API') },
+      // Zid's Metabase only answers inside its network: Sales Hunter reaches
+      // it through an SSH gateway, and so can this app (_shared/ssh-fetch.ts).
+      { name: 'metabase_ssh', title: L('Metabase SSH tunnel', 'نفق SSH إلى Metabase'), logo: 'mb', noSync: true,
+        note: L('Set the tunnel up before saving the Metabase key: changing the tunnel removes the saved Metabase key.', 'اضبط النفق قبل حفظ مفتاح Metabase: تغيير النفق يحذف مفتاح Metabase المحفوظ.'),
+        fields: [['enabled', L('Use the tunnel', 'استخدام النفق'), 'bool'], ['host', L('Gateway host', 'عنوان البوابة')], ['port', L('Port', 'المنفذ')], ['username', L('Username', 'اسم المستخدم')], ['target_url', L('Metabase address seen from the gateway', 'عنوان Metabase من البوابة')]],
+        keyLabel: L('SSH private key', 'مفتاح SSH الخاص'), multiline: true }
     ];
     el.innerHTML = defs.map(function (dfn) {
-      var c = get(dfn.name), st = c.settings || {}, okS = !c.last_status || c.last_status === 'ok';
+      var c = get(dfn.name), st = c.settings || {}, ls = String(c.last_status || '');
+      var okS = !ls || ls === 'ok' || /^skipped/.test(ls), partial = /^partial/.test(ls);
+      var badge = !c.secret_set || /^skipped/.test(ls) ? pill('muted', c.secret_set ? L('Waiting for settings', 'بانتظار الإعدادات') : L('Not connected', 'غير متصل'))
+        : okS ? pill('good', L('Connected', 'متصل')) : partial ? pill('warn', L('Partly failing', 'فشل جزئي')) : pill('bad', L('Last run failed', 'فشل آخر تشغيل'));
+      if (dfn.noSync) badge = c.secret_set ? pill(st.enabled ? 'good' : 'muted', st.enabled ? L('On', 'مفعّل') : L('Off', 'متوقف')) : pill('muted', L('No key saved', 'لا مفتاح محفوظ'));
       return '<section class="card intg-card"><div class="intg-head"><div class="intg-title"><span class="intg-logo ' + dfn.logo + '">' + dfn.title.charAt(0) + '</span><div><h2>' + dfn.title + '</h2>' +
-        '<p class="sub">' + (c.secret_set ? (okS ? pill('good', L('Connected', 'متصل')) : pill('bad', L('Last run failed', 'فشل آخر تشغيل'))) : pill('muted', L('Not connected', 'غير متصل'))) + ' ' + L('Last sync ', 'آخر مزامنة ') + agoText(c.last_synced_at) + '</p></div></div>' +
-        '<div class="intg-actions so-row"><button class="btn so-ib" data-sync="' + dfn.name + '"' + (s.busy === dfn.name || !c.secret_set ? ' disabled' : '') + '>' + ICON.refresh + (s.busy === dfn.name ? L('Syncing…', 'جارٍ المزامنة…') : L('Sync now', 'مزامنة الآن')) + '</button>' +
+        '<p class="sub">' + badge + (dfn.noSync ? '' : ' ' + L('Last sync ', 'آخر مزامنة ') + agoText(c.last_synced_at)) + '</p></div></div>' +
+        '<div class="intg-actions so-row">' + (dfn.noSync ? '' : '<button class="btn so-ib" data-sync="' + dfn.name + '"' + (s.busy === dfn.name || !c.secret_set ? ' disabled' : '') + '>' + ICON.refresh + (s.busy === dfn.name ? L('Syncing…', 'جارٍ المزامنة…') : L('Sync now', 'مزامنة الآن')) + '</button>') +
         '<button class="btn secondary" data-key="' + dfn.name + '">' + (c.secret_set ? L('Replace ', 'استبدال ') : L('Add ', 'إضافة ')) + esc(dfn.keyLabel) + '</button></div></div>' +
-        (!okS ? '<p class="so-warnline">' + esc(String(c.last_status).slice(0, 400)) + '</p>' : '') +
+        (!okS && !dfn.noSync ? '<p class="so-warnline">' + esc(ls.slice(0, 400)) + '</p>' : '') +
+        (dfn.note ? '<p class="so-infoline">' + esc(dfn.note) + '</p>' : '') +
         '<div class="form-grid">' + dfn.fields.map(function (f) {
           var v = st[f[0]]; if (f[2] === 'list' && Array.isArray(v)) v = v.join(', ');
+          if (f[2] === 'bool') return '<label class="f-label so-chk"><input type="checkbox" data-set="' + dfn.name + '.' + f[0] + '" data-bool="1"' + (v ? ' checked' : '') + '> ' + esc(f[1]) + '</label>';
           return '<label class="f-label">' + esc(f[1]) + '<input data-set="' + dfn.name + '.' + f[0] + '" data-list="' + (f[2] === 'list' ? 1 : 0) + '" value="' + esc(v || '') + '" dir="ltr"></label>';
         }).join('') + '<label class="f-label">' + esc(dfn.keyLabel) + '<input disabled value="' + (c.secret_set ? '••••••••••••' : '') + '"></label></div>' +
         '<div style="margin-top:12px"><button class="ghost-btn" data-save="' + dfn.name + '">' + L('Save settings', 'حفظ الإعدادات') + '</button></div></section>';
@@ -302,6 +314,7 @@ VIEWS.integrations = {
       var n = b.getAttribute('data-save'), c = get(n), st = Object.assign({}, c.settings || {});
       el.querySelectorAll('[data-set^="' + n + '."]').forEach(function (inp) {
         var k = inp.getAttribute('data-set').split('.')[1], v = inp.value.trim();
+        if (inp.getAttribute('data-bool')) { st[k] = inp.checked; return; }
         st[k] = inp.getAttribute('data-list') === '1' ? v.split(',').map(function (x) { return x.trim(); }).filter(Boolean) : v;
       });
       SO_API.W.saveIntegration(n, st).then(function () { SO_API.W.audit('integration', 'Changed ' + n + ' settings'); toast(L('Settings saved', 'حُفظت الإعدادات')); reload(); }, failToast);
@@ -309,7 +322,9 @@ VIEWS.integrations = {
     on(el, '[data-key]', 'click', function (b) {
       var n = b.getAttribute('data-key');
       dialog({ title: L('Save a new key', 'حفظ مفتاح جديد'), sub: L('It is stored encrypted and can never be read back, only replaced.', 'يُخزَّن مشفرًا ولا يمكن قراءته لاحقًا، فقط استبداله.'),
-        body: '<label class="f-label">' + L('Key', 'المفتاح') + '<input type="password" id="dlg-key" autocomplete="off" placeholder="••••••••••••"></label>',
+        body: '<label class="f-label">' + L('Key', 'المفتاح') + (n === 'metabase_ssh'
+          ? '<textarea id="dlg-key" rows="7" dir="ltr" autocomplete="off" spellcheck="false" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----" style="width:100%;font-family:ui-monospace,monospace;font-size:12px"></textarea>'
+          : '<input type="password" id="dlg-key" autocomplete="off" placeholder="••••••••••••">') + '</label>',
         confirm: L('Save', 'حفظ'), onConfirm: function (d) {
           var v = d.querySelector('#dlg-key').value.trim();
           if (!v) return false;
@@ -330,7 +345,7 @@ VIEWS.access = {
     var users = ST.model.users.slice().sort(function (a, b) { return (b.active !== false) - (a.active !== false) || a.name.localeCompare(b.name); });
     var roleSel = function (cur, attr) { return '<select ' + attr + '>' + roles.map(function (r) { return '<option value="' + r + '"' + (r === cur ? ' selected' : '') + '>' + esc(roleLabel(r)) + '</option>'; }).join('') + (roles.indexOf(cur) < 0 ? '<option selected disabled>' + esc(roleLabel(cur)) + '</option>' : '') + '</select>'; };
     el.innerHTML =
-      card(L('Add people', 'إضافة أشخاص'), L('Use their Zid Google address. Reps also need their HubSpot owner email to match.', 'استخدم بريد زد في Google. ويجب أن يطابق بريد المندوب بريد المالك في HubSpot.'),
+      card(L('Add people', 'إضافة أشخاص'), L('Use their Zid Google address. Employees also need their HubSpot owner email to match.', 'استخدم بريد زد في Google. ويجب أن يطابق بريد الموظف بريد المالك في HubSpot.'),
         '<div class="form-grid so-grid-4"><label class="f-label">' + L('Email', 'البريد') + '<input id="au-email" type="email" dir="ltr" placeholder="name@zid.sa"></label>' +
         '<label class="f-label">' + L('Name', 'الاسم') + '<input id="au-name" type="text"></label>' +
         '<label class="f-label">' + L('Role', 'الدور') + roleSel('rep', 'id="au-role"') + '</label><div class="so-end"><button class="btn" id="au-add">' + L('Give access', 'منح الوصول') + '</button></div></div>' +
@@ -367,12 +382,13 @@ VIEWS.access = {
       add([{ email: email, name: name || email.split('@')[0], role: r }]);
     });
     el.querySelector('#au-bulk').addEventListener('click', function () {
-      dialog({ title: L('Paste a list', 'لصق قائمة'), sub: L('One per line: email, name, role (rep, manager, finance' + (isAdmin() ? ', admin' : '') + '). Role defaults to rep.', 'سطر لكل شخص: البريد، الاسم، الدور. الافتراضي مندوب.'),
-        body: '<textarea id="dlg-list" rows="8" dir="ltr" style="width:100%" placeholder="sara@zid.sa, Sara Alharbi, rep"></textarea>', confirm: L('Add all', 'إضافة الكل'),
+      dialog({ title: L('Paste a list', 'لصق قائمة'), sub: L('One per line: email, name, role (employee, manager, finance' + (isAdmin() ? ', admin' : '') + '). Role defaults to employee.', 'سطر لكل شخص: البريد، الاسم، الدور. الافتراضي موظف.'),
+        body: '<textarea id="dlg-list" rows="8" dir="ltr" style="width:100%" placeholder="sara@zid.sa, Sara Alharbi, employee"></textarea>', confirm: L('Add all', 'إضافة الكل'),
         onConfirm: function (d) {
           var list = d.querySelector('#dlg-list').value.split(/\n+/).map(function (line) {
             var p = line.split(/[,\t;]/).map(function (x) { return x.trim(); });
             var r = (p[2] || 'rep').toLowerCase();
+            if (r === 'employee' || r === 'موظف') r = 'rep';
             return { email: lcEmail(p[0]), name: p[1] || (p[0] || '').split('@')[0], role: roles.indexOf(r) >= 0 ? r : 'rep' };
           }).filter(function (u) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(u.email); });
           if (!list.length) { toast(L('No valid emails found', 'لا توجد عناوين صحيحة')); return false; }

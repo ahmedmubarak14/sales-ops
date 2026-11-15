@@ -150,7 +150,8 @@ var SO_MOCK = (function () {
       ],
       integrations: [
         { name: 'hubspot', settings: { pipelines: ['sales'], amount_prop: 'amount_without_vat', category_prop: 'industry' }, secret_set: true, last_synced_at: ago(3), last_status: 'ok' },
-        { name: 'metabase', settings: { base_url: 'https://bi-new.mszid.com', card_invoices: '' }, secret_set: true, last_synced_at: ago(14), last_status: 'ok' }
+        { name: 'metabase', settings: { base_url: 'https://bi-new.mszid.com', card_invoices: '' }, secret_set: true, last_synced_at: ago(14), last_status: 'ok' },
+        { name: 'metabase_ssh', settings: { enabled: true, host: 'gateway.example', port: '22', username: 'sales-ops', target_url: 'https://bi-new.mszid.com' }, secret_set: true }
       ],
       runs: [
         { at: ago(3), source: 'hubspot', status: 'ok', rows: 42, note: 'Scheduled' },

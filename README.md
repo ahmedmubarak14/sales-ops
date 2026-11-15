@@ -1,6 +1,6 @@
 # Sales Ops Portal (Zid)
 
-The sales team's commission portal. Reps see exactly which deals count,
+The sales team's commission portal. Employees see exactly which deals count,
 what they earn and what to fix. Managers see the team, decide on
 exceptions and set targets. Finance pays on the invoice.
 
@@ -31,7 +31,7 @@ Zid logos, chart engine and date picker:
 
 ## Who sees what
 
-| Page | Rep | Manager | Finance | Sales Ops (admin) |
+| Page | Employee | Manager | Finance | Sales Ops (admin) |
 |---|---|---|---|---|
 | Overview, Issues, Leaderboard, Analytics, Calculator | own | team | – | team |
 | Deals | own | team | all | all |
@@ -75,12 +75,13 @@ python3 -m http.server 8080
 
 ## Go live
 
-1. **Supabase**: follow `docs/SUPABASE.md`. It covers creating the
-   project, migrations, Google sign-in, the sync functions and the first
-   admin.
-2. **Point the app at the project**:
-   - Put the project URL and publishable key in `config.js`.
-   - Put the same project ref in `_headers` (connect-src).
+1. **Supabase**: the project is `sales-ops` (ref `frccxxwnvrjudjdexxux`,
+   Frankfurt), in the "Zid Org's" organization. The migrations, sync
+   functions, schedules and first users are in place. Google sign-in is
+   still to be switched on (`docs/SUPABASE.md`).
+2. **The app points at it**: `config.js` holds the project URL and
+   publishable key, and `_headers` names the same project in connect-src.
+   Change both together.
 3. **Deploy**: every push to `main` deploys to the Cloudflare Worker
    `sales-ops` (`.github/workflows/deploy.yml`). This needs the
    `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.

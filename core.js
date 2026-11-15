@@ -70,7 +70,7 @@ function daysSince(d) { return d ? Math.max(0, Math.floor((Date.now() - new Date
 
 /* ---------------- labels ---------------- */
 var ROLE_LABEL = {
-  rep: ['Sales rep', 'مندوب مبيعات'], manager: ['Sales manager', 'مدير المبيعات'],
+  rep: ['Employee', 'موظف'], manager: ['Sales manager', 'مدير المبيعات'],
   finance: ['Finance', 'المالية'], admin: ['Sales Ops', 'عمليات المبيعات']
 };
 function roleLabel(r) { var x = ROLE_LABEL[r] || [r]; return L(x[0], x[1]); }
@@ -79,7 +79,7 @@ var ISSUE = {
   not_won: { t: ['Paid, but not Closed Won', 'مدفوعة وغير مغلقة'], why: ['The store paid, but the deal is still open in HubSpot.', 'المتجر دفع لكن الصفقة ما زالت مفتوحة في HubSpot.'], fix: ['Move the deal to Closed Won in HubSpot.', 'انقل الصفقة إلى مغلقة بنجاح في HubSpot.'] },
   amount_gap: { t: ['Amount differs', 'اختلاف في المبلغ'], why: ['The HubSpot amount and the invoice net differ by more than the tolerance.', 'مبلغ HubSpot يختلف عن صافي الفاتورة بأكثر من الحد المسموح.'], fix: ['Update the deal amount in HubSpot to the invoice net.', 'حدّث مبلغ الصفقة في HubSpot ليطابق صافي الفاتورة.'] },
   month_gap: { t: ['Close date in another month', 'تاريخ الإغلاق في شهر آخر'], why: ['The invoice was paid in a different month than the close date.', 'دُفعت الفاتورة في شهر غير شهر تاريخ الإغلاق.'], fix: ['Set the close date to the invoice month.', 'اضبط تاريخ الإغلاق على شهر الفاتورة.'] },
-  owner_gap: { t: ['Different owner on the invoice', 'مالك مختلف في الفاتورة'], why: ['The invoice names a different rep than the HubSpot deal owner.', 'الفاتورة تذكر مندوبًا غير مالك الصفقة في HubSpot.'], fix: ['Management decides who keeps the deal.', 'تقرر الإدارة من يحتفظ بالصفقة.'] },
+  owner_gap: { t: ['Different owner on the invoice', 'مالك مختلف في الفاتورة'], why: ['The invoice names a different employee than the HubSpot deal owner.', 'الفاتورة تذكر موظفًا غير مالك الصفقة في HubSpot.'], fix: ['Management decides who keeps the deal.', 'تقرر الإدارة من يحتفظ بالصفقة.'] },
   duplicate: { t: ['Same store won twice', 'نفس المتجر في صفقتين'], why: ['Two Closed Won deals carry the same store ID.', 'صفقتان مغلقتان بنجاح بنفس رقم المتجر.'], fix: ['Management decides which deal keeps the store.', 'تقرر الإدارة أي صفقة تحتفظ بالمتجر.'] }
 };
 function issueTitle(k) { var x = ISSUE[k]; return x ? L(x.t[0], x.t[1]) : k; }

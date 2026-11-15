@@ -4,6 +4,6 @@
    security in the database is what protects the data. While url/key are
    blank the app runs in demo mode with generated data (also at ?mode=mock). */
 window.SO_CONFIG = {
-  url: '',
-  key: ''
+  url: 'https://frccxxwnvrjudjdexxux.supabase.co',
+  key: 'sb_publishable_lk0rbyeaqEYbyvJWZyBMOA_WV3xONog'
 };
