@@ -211,7 +211,7 @@ VIEWS.access = {
           (isAdmin() ? '<div><label class="f-label" for="nu-alias">' + L('Also known as (aliases)', 'عناوين أخرى (أسماء مستعارة)') + '</label><input type="text" id="nu-alias" dir="ltr" placeholder="alias@zid.sa" value="' + esc((r.email_aliases || []).join(', ')) + '">' +
             '<p class="f-hint">' + L('Other Zid addresses of the same person, comma separated.', 'عناوين زد أخرى لنفس الشخص، مفصولة بفواصل.') + '</p></div>' : '') +
           '<div><label class="f-label" for="nu-title">' + t('jobTitle') + '</label><input type="text" id="nu-title" value="' + esc(r.title || '') + '"></div>' +
-          '<div><label class="f-label" for="nu-role">' + t('role') + '</label><select id="nu-role"' + (ROLES.length < 2 ? ' disabled' : '') + '>' +
+          '<div><label class="f-label" for="nu-role">' + t('role') + '</label><select id="nu-role"' + (ROLES.length < 2 || (edit && lcEmail(r.email) === me) ? ' disabled' : '') + '>' +
             ROLES.concat(ROLES.indexOf(r.role) < 0 ? [r.role] : []).map(function (x) { return '<option value="' + x + '"' + (x === r.role ? ' selected' : '') + '>' + esc(roleLabel(x)) + '</option>'; }).join('') + '</select></div>' +
           '<div id="nu-plan-group"><label class="f-label" for="nu-plan">' + L('Plan', 'الخطة') + '</label><select id="nu-plan">' +
             ST.model.rules.plans.map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === (r.plan || 'junior') ? ' selected' : '') + '>' + esc(planName(p)) + '</option>'; }).join('') + '</select></div>' +
