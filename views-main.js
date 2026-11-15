@@ -309,7 +309,7 @@ VIEWS.queue = {
     on(el, '[data-dismiss]', 'click', function (b) {
       var p = split(b, 'data-dismiss'), r = ST.model.byId[p[0]];
       dialog({ title: L('Dismiss this issue?', 'إغلاق هذه المشكلة؟'), sub: esc(r.merchant) + ' · ' + esc(issueTitle(p[1])),
-        body: '<label class="f-label">' + L('Why (kept in the audit log)', 'السبب (يُحفظ في السجل)') + '<input id="dlg-why" type="text"></label>',
+        body: '<label class="f-label">' + L('Why (kept with the issue)', 'السبب (يُحفظ مع المشكلة)') + '<input id="dlg-why" type="text"></label>',
         confirm: L('Dismiss', 'إغلاق'), onConfirm: function (d) {
           var why = d.querySelector('#dlg-why').value.trim();
           SO_API.W.setIssue(p[0], p[1], { status: 'dismissed', note: why || null }).then(function () {

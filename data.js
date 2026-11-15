@@ -27,7 +27,7 @@ var SO_MOCK = (function () {
     { email: 'hind.alanazi@zid.sa', name: 'Hind Alanazi', role: 'manager', title: 'Sales Manager' },
     { email: 'majed.alsubaie@zid.sa', name: 'Majed Alsubaie', role: 'finance', title: 'Finance Specialist' },
     { email: 'dana.alrashid@zid.sa', name: 'Dana Alrashid', role: 'admin', title: 'Sales Operations' }
-  ].map(function (u, i) { return Object.assign({ id: 'u' + i, active: true, hubspot_owner_id: String(9100 + i) }, u); });
+  ].map(function (u, i) { return Object.assign({ id: 'u' + i, active: true, hubspot_owner_id: String(9100 + i), created_at: new Date(Date.now() - (40 + i * 9) * 864e5).toISOString() }, u); });
 
   var CATS = ['Fashion', 'Electronics', 'Beauty & Perfumes', 'Food & Beverages', 'Home & Furniture', 'Health', 'Gifts & Flowers', 'Sports', 'Kids & Toys', 'Others'];
   var CAT_W = [18, 12, 16, 14, 9, 7, 8, 6, 6, 4];
