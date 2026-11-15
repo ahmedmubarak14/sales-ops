@@ -98,7 +98,7 @@ VIEWS.payouts = {
       rows.map(function (r) {
         var st = { paid: pill('good', L('Paid', 'مصروف')), held: pill('warn', L('Held', 'محجوز')), due: pill('muted', L('Due', 'مستحق')), none: '<span class="sub">—</span>' }[r.status];
         return '<tr><td>' + (canPay && r.status === 'due' ? '<input type="checkbox" data-pick="' + esc(r.e) + '"' + (s.picked[r.e] ? ' checked' : '') + ' aria-label="' + esc(r.u.name) + '">' : '') + '</td>' +
-          '<td><span class="u-cell"><span class="avatar so-av">' + esc(initials(r.u.name)) + '</span><b>' + esc(r.u.name) + '</b></span></td><td>' + esc(r.rm.plan.name) + '</td>' +
+          '<td><span class="u-cell"><span class="avatar so-av">' + esc(initials(r.u.name)) + '</span><b>' + esc(r.u.name) + '</b></span></td><td>' + esc(planName(r.rm.plan)) + '</td>' +
           '<td class="num">' + money(r.rm.closed) + '</td><td class="num">' + r.rm.stores + '</td><td class="num"><b>' + money(r.paid && Number(r.paid.amount) ? Number(r.paid.amount) : r.rm.calc.amount) + '</b></td>' +
           '<td>' + st + (r.paid ? '<span class="cell-sub">' + esc(r.paid.pay_ref || '') + ' · ' + dateShort(r.paid.paid_on) + '</span>' : '') + '</td>' +
           '<td>' + (canPay && r.paid ? '<button class="ghost-btn" data-rev="' + esc(r.paid.id) + '">' + L('Reverse', 'عكس') + '</button>' : '') + '</td></tr>';
@@ -129,7 +129,7 @@ VIEWS.payouts = {
     });
     el.querySelector('#po-csv').addEventListener('click', function () {
       csvDownload('payouts-' + ST.month + '.csv', ['Rep', 'Email', 'Plan', 'Counted SAR', 'Stores', 'Tier rate %', 'Commission', 'Status', 'Reference'],
-        rows.map(function (r) { return [r.u.name, r.e, r.rm.plan.name, Math.round(r.rm.closed), r.rm.stores, r.rm.calc.rate, Math.round(r.rm.calc.amount), r.status, r.paid ? r.paid.pay_ref : '']; }));
+        rows.map(function (r) { return [r.u.name, r.e, planName(r.rm.plan), Math.round(r.rm.closed), r.rm.stores, r.rm.calc.rate, Math.round(r.rm.calc.amount), r.status, r.paid ? r.paid.pay_ref : '']; }));
     });
   }
 };
@@ -178,85 +178,67 @@ VIEWS.grants = {
 /* ---------------- Targets & plans ---------------- */
 VIEWS.targets = {
   title: function () { return L('Targets & plans', 'الأهداف والخطط'); },
-  sub: function () { return L('Each employee\'s plan and monthly target. Changes apply to the month you pick and carry forward.', 'خطة وهدف كل موظف شهريًا. تسري على الشهر المختار وما بعده.'); },
+  sub: function () { return L('Each employee\'s plan and monthly target (as stated, including VAT). Changes apply to the month you pick and carry forward.', 'خطة كل موظف وهدفه الشهري (كما هو، شامل الضريبة). تسري على الشهر المختار وما بعده.'); },
   controls: { month: true },
   render: function (el) {
     var s = ST.v.targets = ST.v.targets || { dirty: {} };
-    var plans = ST.model.rules.plans;
+    var rules = ST.model.rules, plans = rules.plans;
+    var cats = {};
+    ST.model.rows.forEach(function (r) { if (r.category && r.category !== 'Other') cats[r.category] = 1; });
+    (ST.snap.showcase || []).forEach(function (r) { if (r.category) cats[String(r.category).trim()] = 1; });
+    var catList = Object.keys(cats).sort();
     var rows = activeReps().map(function (u) {
       var e = lcEmail(u.email), tg = SO.targetFor(ST.model, e, ST.month), d = s.dirty[e] || {};
-      return { e: e, u: u, plan: d.plan || tg.plan.id, target: d.target != null ? d.target : tg.target, eff: d.eff || 'this',
-        exc: d.exc != null ? d.exc : tg.exception, sector: d.sector != null ? d.sector : tg.sectorMet, inherited: !tg.explicit };
+      var planId = d.plan || tg.plan.id, p = SO.planOf(rules, planId);
+      return { e: e, u: u, plan: planId, p: p, target: d.target != null ? d.target : tg.targetStated, eff: d.eff || 'this',
+        exc: d.exc != null ? d.exc : tg.exception, sectorMet: d.sectorMet != null ? d.sectorMet : tg.sectorMet,
+        start: d.start != null ? d.start : (u.start_date || '').slice(0, 7), sector: d.sector != null ? d.sector : (u.sector || ''),
+        tenure: tg.tenure, inherited: !tg.explicit };
     });
     var n = Object.keys(s.dirty).length;
-    el.innerHTML = '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th>' + L('Employee', 'الموظف') + '</th><th>' + L('Plan', 'الخطة') + '</th><th>' + L('Monthly target (SAR)', 'الهدف الشهري (ريال)') + '</th><th>' + L('Applies from', 'يسري من') + '</th><th title="' + L('Pays commission below the store minimum', 'صرف العمولة دون الحد الأدنى للمتاجر') + '">' + L('Store exception', 'استثناء المتاجر') + '</th><th>' + L('Sector target met', 'تحقق هدف القطاع') + '</th></tr></thead><tbody>' +
+    el.innerHTML = '<section class="card so-flush"><div class="tbl-wrap"><table><thead><tr><th>' + L('Employee', 'الموظف') + '</th><th>' + L('Plan', 'الخطة') + '</th><th>' + L('Monthly target (SAR, incl. VAT)', 'الهدف الشهري (ريال، شامل الضريبة)') + '</th><th>' + L('Applies from', 'يسري من') + '</th>' +
+      '<th>' + L('Joined (new employees)', 'الانضمام (للموظف الجديد)') + '</th><th>' + L('Sector (sector leads)', 'القطاع (لمسؤول القطاع)') + '</th>' +
+      '<th title="' + L('Pays commission below the store minimum', 'صرف العمولة دون الحد الأدنى للمتاجر') + '">' + L('Store exception', 'استثناء المتاجر') + '</th><th>' + L('Sector met (manual)', 'تحقق القطاع (يدويًا)') + '</th></tr></thead><tbody>' +
       rows.map(function (r) {
-        var p = SO.planOf(ST.model.rules, r.plan);
-        return '<tr' + (s.dirty[r.e] ? ' class="so-here"' : '') + '><td><b>' + esc(r.u.name) + '</b>' + (r.inherited && !s.dirty[r.e] ? '<span class="cell-sub">' + L('Carried from an earlier month', 'منقول من شهر سابق') + '</span>' : '') + '</td>' +
-          '<td><select data-k="plan" data-e="' + esc(r.e) + '">' + plans.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === r.plan ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join('') + '</select></td>' +
-          '<td><input type="number" min="0" step="5000" data-k="target" data-e="' + esc(r.e) + '" value="' + Math.round(r.target) + '" style="max-width:140px"></td>' +
+        var probation = !!r.p.probation_targets, lead = !!r.p.sector_min_stores;
+        return '<tr' + (s.dirty[r.e] ? ' class="so-here"' : '') + '><td><b>' + esc(r.u.name) + '</b>' +
+            (probation && r.tenure ? '<span class="cell-sub">' + L('Month ' + r.tenure + ' since joining', 'الشهر ' + r.tenure + ' من الانضمام') + '</span>' : r.inherited && !s.dirty[r.e] ? '<span class="cell-sub">' + L('Carried from an earlier month', 'منقول من شهر سابق') + '</span>' : '') + '</td>' +
+          '<td><select style="min-width:170px" data-k="plan" data-e="' + esc(r.e) + '">' + plans.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === r.plan ? ' selected' : '') + '>' + esc(planName(x)) + '</option>'; }).join('') + '</select></td>' +
+          '<td><input type="number" min="0" step="5000" data-k="target" data-e="' + esc(r.e) + '" value="' + Math.round(r.target) + '" style="max-width:130px" dir="ltr">' +
+            (probation ? '<span class="cell-sub">' + L('Set by month since joining', 'حسب شهر الانضمام') + '</span>' : '') + '</td>' +
           '<td><select data-k="eff" data-e="' + esc(r.e) + '"><option value="this"' + (r.eff === 'this' ? ' selected' : '') + '>' + esc(monthName(ST.month)) + '</option><option value="next"' + (r.eff === 'next' ? ' selected' : '') + '>' + esc(monthName(SO.addMonths(ST.month, 1))) + '</option></select></td>' +
+          '<td>' + (probation ? '<input type="month" data-k="start" data-e="' + esc(r.e) + '" value="' + esc(r.start) + '" dir="ltr" style="max-width:150px">' : '<span class="sub">—</span>') + '</td>' +
+          '<td>' + (lead ? '<select data-k="sector" data-e="' + esc(r.e) + '"><option value="">' + L('Not set', 'غير محدد') + '</option>' + catList.concat(r.sector && catList.indexOf(r.sector) < 0 ? [r.sector] : []).map(function (c) { return '<option value="' + esc(c) + '"' + (c === r.sector ? ' selected' : '') + '>' + esc(trCat(c)) + '</option>'; }).join('') + '</select>' : '<span class="sub">—</span>') + '</td>' +
           '<td><input type="checkbox" data-k="exc" data-e="' + esc(r.e) + '"' + (r.exc ? ' checked' : '') + '></td>' +
-          '<td>' + (p.sector_bonus_pct ? '<input type="checkbox" data-k="sector" data-e="' + esc(r.e) + '"' + (r.sector ? ' checked' : '') + '>' : '<span class="sub">—</span>') + '</td></tr>';
+          '<td>' + (lead ? '<input type="checkbox" data-k="sectorMet" data-e="' + esc(r.e) + '"' + (r.sectorMet ? ' checked' : '') + '>' : '<span class="sub">—</span>') + '</td></tr>';
       }).join('') + '</tbody></table></div></section>' +
       (n ? '<div class="bulk-bar"><b>' + n + ' ' + L('unsaved changes', 'تغييرات غير محفوظة') + '</b><span class="bulk-acts"></span><button class="btn secondary" id="tg-discard">' + L('Discard', 'تجاهل') + '</button><button class="btn" id="tg-save">' + L('Save targets', 'حفظ الأهداف') + '</button></div>' : '');
     on(el, '[data-k]', 'change', function (inp) {
       var e = inp.getAttribute('data-e'), k = inp.getAttribute('data-k');
       var d = s.dirty[e] = s.dirty[e] || {};
       d[k] = inp.type === 'checkbox' ? inp.checked : k === 'target' ? Number(inp.value) || 0 : inp.value;
-      if (k === 'plan' && d.target == null) d.target = SO.planOf(ST.model.rules, inp.value).target;
+      if (k === 'plan') { var np = SO.planOf(rules, inp.value); d.target = np.probation_targets ? np.probation_targets[0] : np.target; }
       VIEWS.targets.render(el);
     });
     var dc = el.querySelector('#tg-discard'); if (dc) dc.addEventListener('click', function () { s.dirty = {}; VIEWS.targets.render(el); });
     var sv = el.querySelector('#tg-save');
     if (sv) sv.addEventListener('click', function () {
-      var out = rows.filter(function (r) { return s.dirty[r.e]; }).map(function (r) {
-        return { rep_email: r.e, month: r.eff === 'next' ? SO.addMonths(ST.month, 1) : ST.month, plan: r.plan, target: r.target, store_exception: !!r.exc, sector_met: !!r.sector };
+      var changed = rows.filter(function (r) { return s.dirty[r.e]; });
+      var targetRows = changed.map(function (r) {
+        return { rep_email: r.e, month: r.eff === 'next' ? SO.addMonths(ST.month, 1) : ST.month, plan: r.plan, target: r.target, store_exception: !!r.exc, sector_met: !!r.sectorMet };
       });
-      SO_API.W.saveTargets(out).then(function () {
-        SO_API.W.audit('targets', 'Changed targets or plans for ' + out.map(function (r) { return nameOf(r.rep_email) + ' (' + r.month + ')'; }).join(', '));
+      // Joining month and sector belong to the person, not the month.
+      var people = changed.filter(function (r) { var d = s.dirty[r.e]; return d.start != null || d.sector != null || d.plan != null; });
+      SO_API.W.saveTargets(targetRows).then(function () {
+        return Promise.all(people.map(function (r) {
+          var d = s.dirty[r.e], patch = { plan: r.plan };
+          if (d.start != null) patch.start_date = d.start ? d.start + '-01' : null;
+          if (d.sector != null) patch.sector = d.sector || null;
+          return SO_API.W.updateUser(r.e, patch);
+        }));
+      }).then(function () {
+        SO_API.W.audit('targets', 'Changed targets or plans for ' + targetRows.map(function (r) { return nameOf(r.rep_email) + ' (' + r.month + ')'; }).join(', '));
         s.dirty = {}; toast(L('Targets and plans saved', 'حُفظت الأهداف والخطط')); reload();
-      }, failToast);
-    });
-  }
-};
-
-/* ---------------- Rules ---------------- */
-VIEWS.rules = {
-  title: function () { return L('Commission rules', 'قواعد العمولة'); },
-  sub: function () { return L('Tiers, accelerator, store minimum and what counts. Saving creates a new version; past months keep theirs.', 'الشرائح والمسرّع والحد الأدنى وما يُحتسب. الحفظ ينشئ إصدارًا جديدًا.'); },
-  controls: {},
-  render: function (el) {
-    var s = ST.v.rules = ST.v.rules || {};
-    if (!s.draft) s.draft = JSON.parse(JSON.stringify(ST.model.rules));
-    var d = s.draft;
-    function num(path, label, unit, val) { return '<label class="f-label so-num"><span>' + esc(label) + '</span><span class="so-unit"><input type="number" data-path="' + path + '" value="' + val + '"><em>' + esc(unit) + '</em></span></label>'; }
-    el.innerHTML = '<div class="grid-2">' +
-      card(L('Tiers', 'الشرائح'), L('Version ', 'الإصدار ') + (ST.snap.ruleVersion || 1) + L(' in force', ' ساري'),
-        '<div class="so-tiers">' + d.tiers.map(function (t, i) {
-          return '<div class="so-row"><b style="min-width:64px">' + tierName(i) + '</b>' + num('tiers.' + i + '.from', L('From', 'من'), L('% of target', '% من الهدف'), t.from) + num('tiers.' + i + '.rate', L('Rate', 'النسبة'), '%', t.rate) + '</div>';
-        }).join('') + '</div>' +
-        '<div class="so-row so-wrap">' + num('accelerator.above_pct', L('Accelerator above', 'المسرّع فوق'), '%', d.accelerator.above_pct) + num('accelerator.block_sar', L('Per block of', 'لكل كتلة'), 'SAR', d.accelerator.block_sar) + num('accelerator.per_block', L('Pays', 'تدفع'), 'SAR', d.accelerator.per_block) + '</div>' +
-        '<div class="so-row so-wrap">' + num('min_stores', L('Store minimum', 'الحد الأدنى للمتاجر'), L('stores', 'متجر'), d.min_stores) + num('tolerance_pct', L('Amount tolerance', 'هامش المبلغ'), '%', d.tolerance_pct) + num('cutoff_day', L('Fix cutoff day', 'يوم الإقفال'), L('of next month', 'من الشهر التالي'), d.cutoff_day) + '</div>' +
-        '<h3 class="so-sec">' + L('Plans', 'الخطط') + '</h3>' + d.plans.map(function (p, i) { return '<div class="so-row so-wrap"><b style="min-width:90px">' + esc(p.name) + '</b>' + num('plans.' + i + '.target', L('Default target', 'الهدف الافتراضي'), 'SAR', p.target) + num('plans.' + i + '.sector_bonus_pct', L('Sector bonus', 'مكافأة القطاع'), '%', p.sector_bonus_pct || 0) + '</div>'; }).join('') +
-        '<h3 class="so-sec">' + L('Invoice actions that do not count', 'أنواع فواتير لا تُحتسب') + '</h3><div class="so-row so-wrap">' +
-          SO.ALL_EXCLUSIONS.map(function (x) { var onx = d.exclusions.indexOf(x) >= 0; return '<button class="ghost-btn' + (onx ? ' so-on' : '') + '" data-excl="' + esc(x) + '">' + (onx ? '✓ ' : '') + esc(x) + '</button>'; }).join('') + '</div>' +
-        '<div style="margin-top:14px"><button class="btn" id="rl-save">' + L('Save as version ', 'حفظ كإصدار ') + ((ST.snap.ruleVersion || 1) + 1) + '</button></div>') +
-      card(L('Rules as employees read them', 'القواعد كما يقرؤها الموظف'), L('Shown on the calculator. Keep each one short.', 'تظهر في الحاسبة. اجعل كلًا منها قصيرًا.'),
-        d.rule_text.map(function (r, i) { return '<label class="f-label">' + (i + 1) + '<input data-rule="' + i + '" value="' + esc(r) + '"></label>'; }).join('')) + '</div>';
-    on(el, '[data-path]', 'change', function (inp) {
-      var p = inp.getAttribute('data-path').split('.'), o = d;
-      for (var i = 0; i < p.length - 1; i++) o = o[p[i]];
-      o[p[p.length - 1]] = Number(inp.value) || 0;
-    });
-    on(el, '[data-rule]', 'input', function (inp) { d.rule_text[Number(inp.getAttribute('data-rule'))] = inp.value; });
-    on(el, '[data-excl]', 'click', function (b) { var x = b.getAttribute('data-excl'), i = d.exclusions.indexOf(x); if (i >= 0) d.exclusions.splice(i, 1); else d.exclusions.push(x); VIEWS.rules.render(el); });
-    el.querySelector('#rl-save').addEventListener('click', function () {
-      d.tiers.sort(function (a, b) { return a.from - b.from; });
-      var v = (ST.snap.ruleVersion || 1) + 1;
-      SO_API.W.saveRules(d, v).then(function () {
-        SO_API.W.audit('rules', 'Saved commission rules, version ' + v);
-        s.draft = null; toast(L('Rules saved · version ', 'حُفظت القواعد · الإصدار ') + v); reload();
       }, failToast);
     });
   }
@@ -268,16 +250,18 @@ VIEWS.access = {
   sub: function () { return L('Only the people listed here can sign in. Anyone else who tries is told to contact sales management, and shows up under requests.', 'لا يدخل إلا من في هذه القائمة. من يحاول غيرهم يُطلب منه التواصل مع إدارة المبيعات ويظهر في الطلبات.'); },
   controls: {},
   render: function (el) {
-    var roles = ['rep', 'manager', 'finance', 'admin'].filter(function (r) { return isAdmin() || r !== 'admin'; });
+    // Managers add employees and revoke employees' access, nothing more
+    // (the database enforces the same rule, migration 007).
+    var roles = isAdmin() ? ['rep', 'manager', 'finance', 'admin'] : ['rep'];
     var reqs = (ST.snap.attempts || []).filter(function (a) { return a.status === 'pending'; });
     var users = ST.model.users.slice().sort(function (a, b) { return (b.active !== false) - (a.active !== false) || a.name.localeCompare(b.name); });
     var roleSel = function (cur, attr) { return '<select ' + attr + '>' + roles.map(function (r) { return '<option value="' + r + '"' + (r === cur ? ' selected' : '') + '>' + esc(roleLabel(r)) + '</option>'; }).join('') + (roles.indexOf(cur) < 0 ? '<option selected disabled>' + esc(roleLabel(cur)) + '</option>' : '') + '</select>'; };
     el.innerHTML =
-      card(L('Add people', 'إضافة أشخاص'), L('Use their Zid Google address. Employees also need their HubSpot owner email to match.', 'استخدم بريد زد في Google. ويجب أن يطابق بريد الموظف بريد المالك في HubSpot.'),
+      card(isAdmin() ? L('Add people', 'إضافة أشخاص') : L('Add employees', 'إضافة موظفين'), L('Use their Zid Google address. Employees also need their HubSpot owner email to match.', 'استخدم بريد زد في Google. ويجب أن يطابق بريد الموظف بريد المالك في HubSpot.') + (isAdmin() ? '' : ' ' + L('Managers can add employees and revoke employees\' access; other roles are set by Sales Ops.', 'يمكن للمدير إضافة الموظفين وسحب وصولهم فقط، وتضبط عمليات المبيعات الأدوار الأخرى.')),
         '<div class="form-grid so-grid-4"><label class="f-label">' + L('Email', 'البريد') + '<input id="au-email" type="email" dir="ltr" placeholder="name@zid.sa"></label>' +
         '<label class="f-label">' + L('Name', 'الاسم') + '<input id="au-name" type="text"></label>' +
-        '<label class="f-label">' + L('Role', 'الدور') + roleSel('rep', 'id="au-role"') + '</label><div class="so-end"><button class="btn" id="au-add">' + L('Give access', 'منح الوصول') + '</button></div></div>' +
-        '<p class="sub" style="margin-top:8px">' + L('Several at once: paste one "email, name, role" per line.', 'عدة أشخاص: الصق "البريد، الاسم، الدور" في كل سطر.') + ' <button class="linklike" id="au-bulk">' + L('Paste a list', 'لصق قائمة') + '</button></p>') +
+        (isAdmin() ? '<label class="f-label">' + L('Role', 'الدور') + roleSel('rep', 'id="au-role"') + '</label>' : '<input type="hidden" id="au-role" value="rep">') + '<div class="so-end"><button class="btn" id="au-add">' + L('Give access', 'منح الوصول') + '</button></div></div>' +
+        '<p class="sub" style="margin-top:8px">' + (isAdmin() ? L('Several at once: paste one "email, name, role" per line.', 'عدة أشخاص: الصق "البريد، الاسم، الدور" في كل سطر.') : L('Several at once: paste one "email, name" per line.', 'عدة أشخاص: الصق "البريد، الاسم" في كل سطر.')) + ' <button class="linklike" id="au-bulk">' + L('Paste a list', 'لصق قائمة') + '</button></p>') +
       '<section class="card"><div class="card-head"><div><h3>' + L('Requests', 'الطلبات') + '</h3><p class="sub">' + L('People who signed in with Google but are not on the list', 'أشخاص دخلوا بحساب Google وليسوا في القائمة') + '</p></div>' + (reqs.length ? '<span class="count-badge">' + reqs.length + '</span>' : '') + '</div>' +
         (reqs.length ? reqs.map(function (q) {
           return '<div class="so-req"><span class="u-cell"><span class="avatar so-av">' + esc(initials(q.name || q.email)) + '</span><span><b>' + esc(q.name || q.email) + '</b><span class="cell-sub" dir="ltr">' + esc(q.email) + '</span></span></span>' +
@@ -287,9 +271,9 @@ VIEWS.access = {
       '<div class="so-split">' +
       '<section class="card so-flush"><div class="card-head" style="padding:16px 18px 0"><div><h3>' + L('Everyone with access', 'كل من لديه وصول') + '</h3><p class="sub">' + users.filter(function (u) { return u.active !== false; }).length + L(' active', ' نشط') + '</p></div></div><div class="tbl-wrap"><table><tbody>' +
         users.map(function (u) {
-          var self = lcEmail(u.email) === lcEmail(ST.realEmail), locked = (u.role === 'admin' && !isAdmin()) || self;
+          var self = lcEmail(u.email) === lcEmail(ST.realEmail), locked = self || (!isAdmin() && u.role !== 'rep');
           return '<tr class="' + (u.active === false ? 'row-off' : '') + '"><td><b>' + esc(u.name) + '</b><span class="cell-sub" dir="ltr">' + esc(u.email) + '</span></td>' +
-            '<td>' + (locked ? esc(roleLabel(u.role)) : roleSel(u.role, 'class="status-select" data-role="' + esc(u.email) + '"')) + '</td>' +
+            '<td>' + (locked || !isAdmin() ? esc(roleLabel(u.role)) : roleSel(u.role, 'class="status-select" data-role="' + esc(u.email) + '"')) + '</td>' +
             '<td>' + (u.active === false ? pill('muted', L('Revoked', 'مسحوب')) : pill('good', L('Active', 'نشط'))) + '</td>' +
             '<td>' + (locked ? '' : u.active === false ? '<button class="ghost-btn" data-restore="' + esc(u.email) + '">' + L('Restore', 'استعادة') + '</button>' : '<button class="ghost-btn" data-revoke="' + esc(u.email) + '">' + L('Revoke', 'سحب') + '</button>') + '</td></tr>';
         }).join('') + '</tbody></table></div></section>' +
@@ -310,7 +294,7 @@ VIEWS.access = {
       add([{ email: email, name: name || email.split('@')[0], role: r }]);
     });
     el.querySelector('#au-bulk').addEventListener('click', function () {
-      dialog({ title: L('Paste a list', 'لصق قائمة'), sub: L('One per line: email, name, role (employee, manager, finance' + (isAdmin() ? ', admin' : '') + '). Role defaults to employee.', 'سطر لكل شخص: البريد، الاسم، الدور. الافتراضي موظف.'),
+      dialog({ title: L('Paste a list', 'لصق قائمة'), sub: isAdmin() ? L('One per line: email, name, role (employee, manager, finance, admin). Role defaults to employee.', 'سطر لكل شخص: البريد، الاسم، الدور. الافتراضي موظف.') : L('One per line: email, name. Everyone is added as an employee.', 'سطر لكل شخص: البريد، الاسم. يُضاف الجميع كموظفين.'),
         body: '<textarea id="dlg-list" rows="8" dir="ltr" style="width:100%" placeholder="sara@zid.sa, Sara Alharbi, employee"></textarea>', confirm: L('Add all', 'إضافة الكل'),
         onConfirm: function (d) {
           var list = d.querySelector('#dlg-list').value.split(/\n+/).map(function (line) {
@@ -325,7 +309,8 @@ VIEWS.access = {
     });
     on(el, '[data-approve]', 'click', function (b) {
       var q = (ST.snap.attempts || []).filter(function (a) { return a.email === b.getAttribute('data-approve'); })[0];
-      dialog({ title: L('Approve ', 'قبول ') + (q.name || q.email), sub: esc(q.email), body: '<label class="f-label">' + L('Role', 'الدور') + roleSel('rep', 'id="dlg-role"') + '</label>', confirm: L('Approve', 'قبول'),
+      dialog({ title: L('Approve ', 'قبول ') + (q.name || q.email), sub: esc(q.email) + (isAdmin() ? '' : ' · ' + L('as an employee', 'كموظف')),
+        body: isAdmin() ? '<label class="f-label">' + L('Role', 'الدور') + roleSel('rep', 'id="dlg-role"') + '</label>' : '<input type="hidden" id="dlg-role" value="rep">', confirm: L('Approve', 'قبول'),
         onConfirm: function (d) { add([{ email: q.email, name: q.name || q.email.split('@')[0], role: d.querySelector('#dlg-role').value }]); } });
     });
     on(el, '[data-deny]', 'click', function (b) {

@@ -178,6 +178,7 @@ window.SO_API = (function () {
     var snap = {
       me: me, users: r[0], deals: r[1], invoices: r[2], targets: r[3],
       rules: rv ? rv.config : null, ruleVersion: rv ? rv.version : 1,
+      ruleMeta: rv ? { saved_at: rv.saved_at, saved_by: rv.saved_by } : {},
       issueStates: r[5], comments: r[6], payouts: r[7], grants: r[8], audit: r[9],
       attempts: r[10], integrations: r[11], runs: r[12], showcase: r[13], settings: settings
     };
@@ -228,7 +229,7 @@ window.SO_API = (function () {
       return req('/rest/v1/targets?on_conflict=rep_email,month', { method: 'POST', body: rows, headers: { Prefer: 'resolution=merge-duplicates' } });
     },
     saveRules: function (config, version) {
-      if (!live()) { var s = mockSnap(); s.rules = config; s.ruleVersion = version; return Promise.resolve(); }
+      if (!live()) { var s = mockSnap(); s.rules = config; s.ruleVersion = version; s.ruleMeta = { saved_at: now(), saved_by: mockActor }; return Promise.resolve(); }
       return req('/rest/v1/rule_versions', { method: 'POST', body: { version: version, config: config } });
     },
     markPaid: function (rows) {

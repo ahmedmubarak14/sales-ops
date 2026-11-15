@@ -29,34 +29,37 @@ VIEWS.overview = {
 
     if (rm) {
       var c = rm.calc, rules = ST.model.rules;
-      var maxPct = Math.max(160, (rules.accelerator || {}).above_pct || 150);
-      var marks = SO.tierFor(rules, 0).all.filter(function (t) { return t.from > 0; }).map(function (t) { return { at: t.from / maxPct, label: t.from + '% · ' + t.rate + '%' }; });
+      var planTiers = SO.tierFor(rules, 0, rm.plan).all;
+      var maxPct = Math.max(130, (planTiers[planTiers.length - 1] || {}).from + 30, (rules.accelerator || {}).above_pct || 0);
+      var marks = planTiers.filter(function (t) { return t.from > 0; }).map(function (t) { return { at: t.from / maxPct, label: t.from + '% · ' + t.rate + '%' }; });
       var next = c.nextTier;
       var nextNeed = next ? Math.max(0, rm.target * next.from / 100 - rm.closed) : 0;
       var nextComm = next ? SO.whatIf(ST.model, rm, nextNeed, 0) : null;
       html += '<section class="card so-hero">' +
         '<div class="so-hero-top"><div>' +
-          '<p class="t-label">' + L('Commission this month', 'عمولة هذا الشهر') + ' <span class="so-plan">' + esc(rm.plan.name) + '</span></p>' +
+          '<p class="t-label">' + L('Commission this month', 'عمولة هذا الشهر') + ' <span class="so-plan">' + esc(planName(rm.plan)) + (rm.tenure ? ' · ' + L('month ' + rm.tenure, 'الشهر ' + rm.tenure) : '') + '</span></p>' +
           '<p class="so-hero-value">' + money(c.amount) + '</p>' +
           '<p class="sub">' + tierName(c.tierIndex) + ' · ' + c.rate + '% ' + L('on', 'على') + ' ' + money(rm.closed) + ' ' + L('counted', 'محسوبة') +
             (c.accel ? ' · ' + L('accelerator', 'مسرّع') + ' ' + money(c.accel) : '') +
-            (c.held ? ' <span class="so-held">' + ICON.lock + L('Held: ' + c.storesShort + ' more stores needed', 'محجوزة: تحتاج ' + c.storesShort + ' متاجر إضافية') + '</span>' : '') + '</p>' +
+            (c.sectorBlocked ? ' <span class="so-held">' + ICON.lock + L('No commission until the sector minimum is met', 'لا عمولة حتى تحقيق حد القطاع') + '</span>' : '') +
+            (c.held ? ' <span class="so-held">' + ICON.lock + L('Held: ' + c.storesShort + ' more ' + (c.storesShort === 1 ? 'store' : 'stores') + ' needed', 'محجوزة: تحتاج ' + c.storesShort + ' متاجر إضافية') + '</span>' : '') + '</p>' +
         '</div><div class="so-checks">' +
           check(rm.target > 0, L('Target set', 'الهدف محدد') + ' · ' + moneyC(rm.target)) +
-          check(rm.stores >= rules.min_stores || rm.exception, rm.stores + ' / ' + rules.min_stores + ' ' + L('stores', 'متجر') + (rm.exception ? ' · ' + L('exception', 'استثناء') : '')) +
+          check(rm.stores >= c.minStores || rm.exception, rm.stores + ' / ' + c.minStores + ' ' + L('stores', 'متجر') + (rm.exception ? ' · ' + L('exception', 'استثناء') : '')) +
+          (rm.plan.sector_min_stores ? check(rm.sectorOk, rm.sector ? rm.sectorStores + ' / ' + rm.plan.sector_min_stores + ' ' + L('stores in ', 'متاجر في ') + trCat(rm.sector) : L('Sector not set yet', 'لم يُحدد القطاع بعد')) : '') +
           check(!rm.issues.length, rm.issues.length ? rm.issues.length + ' ' + L('open issues', 'مشكلات مفتوحة') : L('No open issues', 'لا مشكلات مفتوحة')) +
         '</div></div>' +
         progress(rm.target ? rm.closed / rm.target * 100 / maxPct : 0, marks) +
         '<div class="so-hero-legend"><span>' + L('Counted', 'المحسوب') + ' <b>' + money(rm.closed) + '</b></span>' +
           '<span>' + pct(rm.target ? rm.closed / rm.target : 0) + ' ' + L('of target', 'من الهدف') + '</span>' +
-          '<span>' + L('Target', 'الهدف') + ' <b>' + money(rm.target) + '</b></span></div>' +
+          '<span>' + L('Target', 'الهدف') + ' <b>' + money(rm.target) + '</b>' + (rm.targetStated !== rm.target ? ' <span class="sub">(' + money(rm.targetStated) + L(' incl. VAT', ' شامل الضريبة') + ')</span>' : '') + '</span></div>' +
         (next ? '<div class="so-next"><div class="so-next-ic">' + ICON.target + '</div><div><p><b>' + L('Next: ', 'التالي: ') + tierName(c.tierIndex + 1) + ' (' + next.rate + '%) ' + L('at', 'عند') + ' ' + next.from + '%</b></p>' +
           '<p class="sub">' + L('Close ', 'أغلق ') + money(nextNeed) + L(' more to get there.', ' إضافية للوصول.') + '</p></div>' +
           '<div class="so-next-r"><p class="sub">' + L('Commission then', 'العمولة حينها') + '</p><p><b>' + money(nextComm.amount) + '</b> <span class="money-pos">' + signed(nextComm.amount - c.amount) + '</span></p></div></div>' : '') +
       '</section>';
       html += kpis([
         tile(L('Counted', 'المحسوب'), moneyC(rm.closed), L('Invoice net, this month', 'صافي الفواتير هذا الشهر')),
-        tile(L('Stores', 'المتاجر'), fmtNum(rm.stores), L('Minimum ', 'الحد الأدنى ') + rules.min_stores),
+        tile(L('Stores', 'المتاجر'), fmtNum(rm.stores), L('Minimum ', 'الحد الأدنى ') + c.minStores),
         tile(L('HubSpot closed won', 'المغلق في HubSpot'), moneyC(rm.hsClosed), L('Before invoice checks', 'قبل مطابقة الفواتير')),
         tile(L('At stake', 'معرّض للخسارة'), moneyC(rm.atStake), L('Not counted until fixed', 'غير محسوب حتى الإصلاح'))
       ]);
@@ -376,7 +379,7 @@ VIEWS.calc = {
       '<div class="card">' +
         (isRep() ? '' : '<div class="filter-row" style="margin-bottom:10px"><button class="ghost-btn" id="cc-back">← ' + L('All employees', 'كل الموظفين') + '</button><b>' + esc(nameOf(email)) + '</b></div>') +
         '<h2>' + L('If you close more', 'إن أغلقت المزيد') + '</h2>' +
-        '<p class="sub">' + esc(rm.plan.name) + ' · ' + L('counted so far', 'المحسوب حتى الآن') + ' ' + money(rm.closed) + ' · ' + rm.stores + ' ' + L('stores', 'متجر') + ' · ' + L('target', 'الهدف') + ' ' + money(rm.target) + '</p>' +
+        '<p class="sub">' + esc(planName(rm.plan)) + ' · ' + L('counted so far', 'المحسوب حتى الآن') + ' ' + money(rm.closed) + ' · ' + rm.stores + ' ' + L('stores', 'متجر') + ' · ' + L('target', 'الهدف') + ' ' + money(rm.target) + '</p>' +
         '<label class="so-slider"><span>' + L('Extra closed', 'إغلاق إضافي') + ' · <b>' + money(s.extra) + '</b></span><input type="range" id="cc-extra" min="0" max="' + Math.max(80000, Math.round(rm.target)) + '" step="1000" value="' + s.extra + '"></label>' +
         '<div class="so-row so-wrap">' + [0, 10000, 25000, 50000].concat(nowC.nextTier ? [Math.ceil((rm.target * nowC.nextTier.from / 100 - rm.closed) / 1000) * 1000] : []).filter(function (v, i, a) { return v >= 0 && a.indexOf(v) === i; })
           .map(function (v) { return '<button class="ghost-btn' + (v === s.extra ? ' so-on' : '') + '" data-extra="' + v + '">' + (v ? '+' + moneyC(v) : L('Now', 'الآن')) + '</button>'; }).join('') + '</div>' +
@@ -384,15 +387,15 @@ VIEWS.calc = {
         '<div class="so-calc-out"><div><p class="sub">' + L('Commission now', 'العمولة الآن') + '</p><p class="so-big">' + money(nowC.amount) + '</p>' + (nowC.held ? '<p class="sub so-neg">' + L('Held', 'محجوزة') + '</p>' : '') + '</div>' +
           '<div><p class="sub">' + L('After', 'بعد') + '</p><p class="so-big">' + money(after.amount) + '</p><p class="sub">' + tierName(after.tierIndex) + ' · ' + pct(after.ach / 100) + '</p></div>' +
           '<div><p class="sub">' + L('Change', 'الفرق') + '</p><p class="so-big money-pos">' + signed(after.amount - nowC.amount) + '</p></div></div>' +
-        (after.held ? '<p class="so-warnline">' + ICON.lock + L('Still held: needs ' + after.storesShort + ' more stores (minimum ' + rules.min_stores + ').', 'ما زالت محجوزة: تحتاج ' + after.storesShort + ' متاجر إضافية (الحد ' + rules.min_stores + ').') + '</p>' : '') +
+        (after.held ? '<p class="so-warnline">' + ICON.lock + L('Still held: needs ' + after.storesShort + ' more ' + (after.storesShort === 1 ? 'store' : 'stores') + ' (minimum ' + after.minStores + ').', 'ما زالت محجوزة: تحتاج ' + after.storesShort + ' متاجر إضافية (الحد ' + after.minStores + ').') + '</p>' : '') +
         (after.tierIndex > nowC.tierIndex ? '<p class="so-infoline">' + L('Crossing into a higher tier re-rates the whole month, not just the extra.', 'الانتقال لشريحة أعلى يعيد احتساب الشهر كله، لا الإضافة فقط.') + '</p>' : '') +
       '</div>' +
-      card(L('Rules', 'القواعد'), '', '<ol class="so-rules">' + (rules.rule_text || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>') +
+      card(L('Rules', 'القواعد'), '<a href="#/rules">' + L('Open the full rules', 'افتح القواعد كاملة') + '</a>', '<div class="so-calc-rules">' + rulesDocHtml(rules, isAr() ? 'ar' : 'en') + '</div>') +
       '</section>' +
       card(L('Ladder', 'السلم'), L('Commission at each step for this target', 'العمولة عند كل خطوة لهذا الهدف'),
         '<div class="tbl-wrap"><table><thead><tr><th>' + L('Closed', 'المغلق') + '</th><th>' + L('Achievement', 'الإنجاز') + '</th><th>' + L('Tier', 'الشريحة') + '</th><th class="num">' + L('Commission', 'العمولة') + '</th><th></th></tr></thead><tbody>' +
         lad.map(function (l, i) {
-          return '<tr class="' + (i === here ? 'so-here' : '') + '"><td>' + money(l.closed) + (l.cliff ? ' <span class="so-pill muted"><i></i>' + moneyC((rules.accelerator || {}).per_block) + ' / ' + L('block', 'كتلة') + '</span>' : '') + '</td><td>' + Math.round(l.pct) + '%</td><td>' + tierName(l.tierIndex) + ' · ' + l.rate + '%</td><td class="num">' + money(l.comm) + '</td><td>' + (i === here ? '<b>' + L('You are here', 'أنت هنا') + '</b>' : '') + '</td></tr>';
+          return '<tr class="' + (i === here ? 'so-here' : '') + '"><td>' + money(l.closed) + (l.cliff && rules.accelerator ? ' <span class="so-pill muted"><i></i>' + moneyC(rules.accelerator.per_block) + ' / ' + L('block', 'كتلة') + '</span>' : '') + '</td><td>' + Math.round(l.pct) + '%</td><td>' + tierName(l.tierIndex) + ' · ' + l.rate + '%</td><td class="num">' + money(l.comm) + '</td><td>' + (i === here ? '<b>' + L('You are here', 'أنت هنا') + '</b>' : '') + '</td></tr>';
         }).join('') + '</tbody></table></div>');
     var x = el.querySelector('#cc-extra');
     x.addEventListener('input', function () { s.extra = Number(x.value); VIEWS.calc.render(el); var n = el.querySelector('#cc-extra'); if (n) n.focus(); });

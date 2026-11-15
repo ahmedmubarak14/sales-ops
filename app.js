@@ -30,7 +30,7 @@
     '/payouts':      { view: 'payouts',      icon: 'money',  sec: 'money', who: ['manager', 'finance', 'admin'] },
     '/grants':       { view: 'grants',       icon: 'key',    sec: 'money', who: ['manager', 'admin'] },
     '/targets':      { view: 'targets',      icon: 'target', sec: 'money', who: ['manager', 'admin'] },
-    '/rules':        { view: 'rules',        icon: 'gear',   sec: 'admin', who: ['admin'] },
+    '/rules':        { view: 'rules',        icon: 'doc',    sec: 'money', who: ['rep', 'manager', 'finance', 'admin'] },
     '/integrations': { view: 'integrations', icon: 'plug',   sec: 'admin', who: ['admin'] },
     '/access':       { view: 'access',       icon: 'users',  sec: 'admin', who: ['manager', 'admin'], badge: 'requests' }
   };
@@ -197,7 +197,7 @@
     dialog({ title: L('Employees', 'الموظفون'), sub: L('Pick one or more. None picked means the whole team.', 'اختر واحدًا أو أكثر. بدون اختيار يعني الفريق كله.'),
       body: '<input type="search" id="ms-q" placeholder="' + L('Search employees', 'ابحث عن موظف') + '" style="width:100%;margin-bottom:8px"><div class="so-msl">' + reps.map(function (u) {
         var e = lcEmail(u.email);
-        return '<label class="so-msi" data-name="' + esc(u.name.toLowerCase()) + '"><input type="checkbox" value="' + esc(e) + '"' + (picked[e] ? ' checked' : '') + '><span><b>' + esc(u.name) + '</b><span class="cell-sub">' + esc(SO.planOf(ST.model.rules, u.plan).name) + '</span></span></label>';
+        return '<label class="so-msi" data-name="' + esc(u.name.toLowerCase()) + '"><input type="checkbox" value="' + esc(e) + '"' + (picked[e] ? ' checked' : '') + '><span><b>' + esc(u.name) + '</b><span class="cell-sub">' + esc(planName(SO.planOf(ST.model.rules, u.plan))) + '</span></span></label>';
       }).join('') + '</div><div class="so-row" style="margin-top:8px"><button class="ghost-btn" id="ms-none">' + L('Reset', 'إعادة') + '</button></div>',
       confirm: L('Apply', 'تطبيق'),
       wire: function (d) {

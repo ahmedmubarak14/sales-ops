@@ -16,14 +16,14 @@ var SO_MOCK = (function () {
   var THIS_MONTH = SO.monthKey(NOW);
 
   var USERS = [
-    { email: 'sara.alharbi@zid.sa', name: 'Sara Alharbi', role: 'rep', plan: 'senior', title: 'Senior Account Executive' },
-    { email: 'faisal.alotaibi@zid.sa', name: 'Faisal Alotaibi', role: 'rep', plan: 'standard', title: 'Account Executive' },
-    { email: 'noura.alqahtani@zid.sa', name: 'Noura Alqahtani', role: 'rep', plan: 'senior', title: 'Senior Account Executive' },
-    { email: 'omar.alshehri@zid.sa', name: 'Omar Alshehri', role: 'rep', plan: 'standard', title: 'Account Executive' },
-    { email: 'reem.aldosari@zid.sa', name: 'Reem Aldosari', role: 'rep', plan: 'standard', title: 'Account Executive' },
-    { email: 'khalid.almutairi@zid.sa', name: 'Khalid Almutairi', role: 'rep', plan: 'lead', title: 'Team Lead' },
-    { email: 'lama.alzahrani@zid.sa', name: 'Lama Alzahrani', role: 'rep', plan: 'standard', title: 'Account Executive' },
-    { email: 'yousef.alghamdi@zid.sa', name: 'Yousef Alghamdi', role: 'rep', plan: 'standard', title: 'Account Executive' },
+    { email: 'sara.alharbi@zid.sa', name: 'Sara Alharbi', role: 'rep', plan: 'senior', sector: 'Fashion', title: 'Senior Account Executive' },
+    { email: 'faisal.alotaibi@zid.sa', name: 'Faisal Alotaibi', role: 'rep', plan: 'junior', title: 'Account Executive' },
+    { email: 'noura.alqahtani@zid.sa', name: 'Noura Alqahtani', role: 'rep', plan: 'senior', sector: 'Beauty & Perfumes', title: 'Senior Account Executive' },
+    { email: 'omar.alshehri@zid.sa', name: 'Omar Alshehri', role: 'rep', plan: 'junior', title: 'Account Executive' },
+    { email: 'reem.aldosari@zid.sa', name: 'Reem Aldosari', role: 'rep', plan: 'junior', title: 'Account Executive' },
+    { email: 'khalid.almutairi@zid.sa', name: 'Khalid Almutairi', role: 'rep', plan: 'junior', title: 'Account Executive' },
+    { email: 'lama.alzahrani@zid.sa', name: 'Lama Alzahrani', role: 'rep', plan: 'probation', start_date: SO.addMonths(SO.monthKey(new Date()), -2) + '-01', title: 'Account Executive' },
+    { email: 'yousef.alghamdi@zid.sa', name: 'Yousef Alghamdi', role: 'rep', plan: 'probation', start_date: SO.addMonths(SO.monthKey(new Date()), -2) + '-01', title: 'Account Executive' },
     { email: 'hind.alanazi@zid.sa', name: 'Hind Alanazi', role: 'manager', title: 'Sales Manager' },
     { email: 'majed.alsubaie@zid.sa', name: 'Majed Alsubaie', role: 'finance', title: 'Finance Specialist' },
     { email: 'dana.alrashid@zid.sa', name: 'Dana Alrashid', role: 'admin', title: 'Sales Operations' }
@@ -111,8 +111,9 @@ var SO_MOCK = (function () {
   [SO.addMonths(THIS_MONTH, -1), THIS_MONTH].forEach(function (mk) {
     reps.forEach(function (r, i) {
       var p = SO.planOf(SO.DEFAULT_RULES, r.plan);
-      targets.push({ rep_email: r.email, month: mk, plan: r.plan, target: p.target + (i % 3) * 10000,
-        store_exception: mk === THIS_MONTH && i === 7, sector_met: r.plan === 'senior' && i === 0 });
+      if (p.probation_targets) return; // new employees: target by month since joining
+      targets.push({ rep_email: r.email, month: mk, plan: r.plan, target: p.target,
+        store_exception: mk === THIS_MONTH && i === 3, sector_met: false });
     });
   });
 
@@ -133,7 +134,7 @@ var SO_MOCK = (function () {
   function snapshot() {
     return {
       users: USERS.slice(), deals: deals, invoices: invoices, targets: targets,
-      rules: SO.DEFAULT_RULES, ruleVersion: 3,
+      rules: SO.DEFAULT_RULES, ruleVersion: 3, ruleMeta: { saved_at: ago(60 * 26), saved_by: 'dana.alrashid@zid.sa' },
       issueStates: [], comments: [],
       payouts: reps.slice(0, 3).map(function (r, i) {
         return { id: i + 1, rep_email: r.email, month: SO.addMonths(THIS_MONTH, -2), amount: 0, paid_on: SO.addMonths(THIS_MONTH, -1) + '-05', pay_ref: 'PAY-' + SO.addMonths(THIS_MONTH, -1).replace('-', '') + '05', paid_by: 'majed.alsubaie@zid.sa' };

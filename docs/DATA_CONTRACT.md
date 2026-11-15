@@ -167,3 +167,21 @@ run independently).
 |---|---|---|
 | `sync_state` | `source text pk`, `bookmark text`, `scope text`, `last_run_at`, `last_status`, `last_error` | sync-hubspot's `hs_lastmodifieddate` bookmark (`source = 'hubspot'`); `scope` fingerprints the settings it was taken under. Admin may read. |
 | `deal_merges` | `old_id text pk`, `canonical_id text`, `checked_at` | sync-metabase's cache of HubSpot merged-deal lookups. Service role only. |
+
+## Changes after launch (migrations 005 to 007)
+
+- `app_users.start_date` (date): the month a new employee joined; their
+  target is the plan's `probation_targets[n-1]` for their n-th month.
+- `app_users.sector` (text): the sector a senior / sector lead owns.
+- `app_users.email_aliases` (text[]): other addresses of the same person
+  (Google Workspace aliases). `current_member()` and
+  `log_access_attempt()` match the sign-in email against `email` or any
+  alias.
+- Names come from Google: `log_access_attempt()` copies the Google profile
+  name (from the sign-in JWT) into `app_users.name` on every sign-in.
+- Rule config v2: per-plan `tiers`, `target`, `probation_targets`,
+  `sector_min_stores` and `min_stores`; top-level `vat_pct` and
+  `target_includes_vat` (targets are stated incl. VAT and compared on the
+  net basis). No accelerator.
+- Managers may only add employees (role `rep`) and change or revoke
+  employees; they cannot delete anyone or touch other roles (007).

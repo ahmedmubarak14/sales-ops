@@ -38,9 +38,9 @@ VIEWS.team = {
       '</tr></thead><tbody>' + rows.map(function (r) {
         var u = userByEmail(r.email) || {};
         return '<tr class="rowlink" data-rep="' + esc(r.email) + '"><td><span class="u-cell"><span class="avatar so-av">' + esc(initials(u.name)) + '</span><b>' + esc(u.name || r.email) + '</b></span></td>' +
-          '<td>' + esc(r.plan.name) + '</td><td class="num">' + moneyC(r.target) + '</td>' +
+          '<td>' + esc(planName(r.plan)) + '</td><td class="num">' + moneyC(r.target) + '</td>' +
           '<td><div class="so-cellbar">' + bar(r.target ? r.closed / r.target : 0, r.closed >= r.target ? 'good' : '') + '<span>' + moneyC(r.closed) + ' · ' + pct(r.target ? r.closed / r.target : 0) + '</span></div></td>' +
-          '<td class="num">' + r.stores + (r.stores < ST.model.rules.min_stores && !r.exception ? ' <span class="so-neg">!</span>' : '') + '</td>' +
+          '<td class="num">' + r.stores + (r.stores < r.calc.minStores && !r.exception ? ' <span class="so-neg">!</span>' : '') + '</td>' +
           '<td class="num">' + (r.gap ? moneyC(r.gap) : '✓') + '</td>' +
           '<td class="num">' + money(r.calc.amount) + (r.calc.held ? '<span class="cell-sub so-neg">' + L('held', 'محجوزة') + '</span>' : '') + '</td>' +
           '<td class="num">' + (r.issues.length ? '<span class="so-badge-n">' + r.issues.length + '</span>' : '') + '</td>' +
