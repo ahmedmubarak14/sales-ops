@@ -72,9 +72,17 @@ var SO = (function () {
     var excl = (rules.exclusions || []).map(lc);
     var tol = (Number(rules.tolerance_pct) || 0) / 100;
 
+    // The store a deal is for: HubSpot's store ID property when it is set,
+    // else the Store ID on the deal's Metabase invoice (always present).
+    function storeOf(d) {
+      if (d.store_id) return String(d.store_id);
+      var v = (invByDeal[d.hubspot_deal_id] || []).filter(function (x) { return x.store_id; })[0];
+      return v ? String(v.store_id) : '';
+    }
     var wonByStore = {};
     (snap.deals || []).forEach(function (d) {
-      if (d.is_won && d.store_id) (wonByStore[d.store_id] = wonByStore[d.store_id] || []).push(d.hubspot_deal_id);
+      var st = storeOf(d);
+      if (d.is_won && st) (wonByStore[st] = wonByStore[st] || []).push(d.hubspot_deal_id);
     });
 
     var rows = (snap.deals || []).map(function (d) {
@@ -90,7 +98,7 @@ var SO = (function () {
       var hs = Number(d.amount || 0);
       var r = {
         id: d.hubspot_deal_id, deal: d, merchant: d.deal_name || d.hubspot_deal_id,
-        owner: lc(d.owner_email), ownerName: d.owner_name || '', storeId: d.store_id || '',
+        owner: lc(d.owner_email), ownerName: d.owner_name || '', storeId: storeOf(d),
         category: (d.category || '').trim() || 'Other', type: d.deal_type || 'New',
         stage: d.stage_label || d.stage || '', won: !!d.is_won, closed: !!d.is_closed,
         hs: hs, inv: invNet, exclNet: exclNet, invoices: inv, invoiceNo: invNums[0] || '',
