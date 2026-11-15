@@ -1,0 +1,16 @@
+// Cloudflare Workers: serves this repo's static files as they are (no
+// build step, no script). The backend is Supabase (config.js). Headers
+// live in _headers; .assetsignore decides which files are public.
+//
+// Deploy: npx wrangler@4.151.0 deploy
+{
+  "name": "sales-ops",
+  // Zid Holding, the same account as Sales Hunter, so a deploy can't land
+  // on a personal account.
+  "account_id": "2fe2004d223b86fa22b4258eca0d9ae7",
+  "compatibility_date": "2026-10-15",
+  "assets": {
+    "directory": ".",
+    "html_handling": "drop-trailing-slash"
+  }
+}

@@ -1,0 +1,12 @@
+# Cloudflare uploads only what is listed below. Everything else
+# (supabase/, docs/, README.md, .git, Wrangler files) stays private.
+*
+!/index.html
+!/*.js
+!/*.css
+!/favicon.svg
+!/favicon-32.png
+!/apple-touch-icon.png
+!/auth/
+!/auth/callback/
+!/auth/callback/*
