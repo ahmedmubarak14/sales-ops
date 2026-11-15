@@ -280,6 +280,17 @@ window.SO_API = (function () {
       if (!live()) { mockSnap().integrations.forEach(function (i) { if (i.name === name) i.secret_set = true; }); return Promise.resolve(); }
       return rpc('set_integration_secret', { p_name: name, p_secret: secret });
     },
+    // Metabase SSH tunnel: the server makes the key pair, keeps the private
+    // half encrypted, and returns only the public half (ssh-keygen function).
+    createSshKey: function () {
+      if (!live()) {
+        var s = mockSnap(), row = s.integrations.filter(function (i) { return i.name === 'metabase_ssh'; })[0];
+        var pub = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDemoKeyOnlyForTheDemoNotARealKey0000000 zid-sales-ops';
+        if (row) { row.settings = Object.assign({}, row.settings, { public_key: pub, key_created_at: now() }); row.secret_set = true; }
+        return Promise.resolve({ ok: true, public_key: pub });
+      }
+      return req('/functions/v1/ssh-keygen', { method: 'POST', body: {} });
+    },
     requestSync: function (source) {
       if (!live()) {
         var s = mockSnap();

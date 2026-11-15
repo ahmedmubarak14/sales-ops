@@ -166,7 +166,7 @@
               '<button class="icon-btn" id="refresh" title="' + L('Refresh data', 'تحديث البيانات') + '" aria-label="' + L('Refresh data', 'تحديث البيانات') + '">' + ICON.refresh + '</button>' +
               '<button class="icon-btn lang-btn" id="lang" aria-label="' + L('Language', 'اللغة') + '">' + (isAr() ? 'EN' : 'ع') + '</button>' +
               '<button class="icon-btn" id="theme" title="' + L('Theme', 'المظهر') + '" aria-label="' + L('Theme', 'المظهر') + '">' + ICON.sun + '</button></div></div>' +
-          '<div class="content"><div class="so-pagehead"><p class="sub">' + esc(view.sub()) + '</p><div class="so-controls">' + ctrl + '</div></div><div id="view"></div></div>' +
+          '<div class="content"><div class="so-pagehead"' + (view.sub() || ctrl ? '' : ' hidden') + '><p class="sub">' + esc(view.sub()) + '</p><div class="so-controls">' + ctrl + '</div></div><div id="view"></div></div>' +
         '</div></div>';
 
     var v = document.getElementById('view');

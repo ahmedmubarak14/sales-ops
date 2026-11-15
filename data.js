@@ -149,7 +149,7 @@ var SO_MOCK = (function () {
         { email: 'abeer.saleh@zid.sa', name: 'Abeer Saleh', first_at: ago(60 * 30), last_at: ago(60 * 30), attempts: 1, status: 'pending' }
       ],
       integrations: [
-        { name: 'hubspot', settings: { pipelines: ['sales'], amount_prop: 'amount_without_vat', category_prop: 'industry' }, secret_set: true, last_synced_at: ago(3), last_status: 'ok' },
+        { name: 'hubspot', settings: { pipelines: ['39948135', '39707223'], amount_prop: 'amount_without_vat', close_date_prop: 'closedate' }, secret_set: true, last_synced_at: ago(3), last_status: 'ok' },
         { name: 'metabase', settings: { base_url: 'https://bi-new.mszid.com', card_invoices: '' }, secret_set: true, last_synced_at: ago(14), last_status: 'ok' },
         { name: 'metabase_ssh', settings: { enabled: true, host: 'gateway.example', port: '22', username: 'sales-ops', target_url: 'https://bi-new.mszid.com' }, secret_set: true }
       ],
