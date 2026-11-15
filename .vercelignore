@@ -1,0 +1,9 @@
+# Only the app's own files are published; the backend code, docs and
+# deploy configs for other hosts stay private (same idea as .assetsignore).
+supabase/
+docs/
+README.md
+.github/
+wrangler.jsonc
+_headers
+.assetsignore
