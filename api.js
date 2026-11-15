@@ -119,8 +119,10 @@ window.SO_API = (function () {
     var back = location.origin + location.pathname;
     // hd= asks Google to show Zid Workspace accounts first; the allowlist
     // in the database is what actually decides access.
+    // Extra parameters go on the address as they are (as supabase-js sends
+    // its queryParams); Supabase passes them on to Google.
     location.href = cfg.url + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(back) +
-      '&query_params=' + encodeURIComponent('hd=zid.sa&prompt=select_account');
+      '&hd=zid.sa&prompt=select_account';
   }
   function signOut() {
     var s = getSession();
